@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="mn"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sleeping Teaching Assistant</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light;
+--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mu:#5b6578;--bd:#d9dde5;--sleep:#7c5cd6;--help:#1f9d55;--wait:#e0a100;--prog:#3b82f6;--away:#d64545}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#14171d;--card:#1d222b;--tx:#e8ebf1;--mu:#9aa4b6;--bd:#333a47;--sleep:#a58cf0;--help:#43c27a;--wait:#f0b92e;--prog:#6aa3ff;--away:#f07272}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#14171d;--card:#1d222b;--tx:#e8ebf1;--mu:#9aa4b6;--bd:#333a47;--sleep:#a58cf0;--help:#43c27a;--wait:#f0b92e;--prog:#6aa3ff;--away:#f07272}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;padding:14px;max-width:980px;margin-inline:auto}
+h1{font-size:20px;margin:4px 0 12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+label{font-size:12px;color:var(--mu);display:flex;flex-direction:column;gap:3px}
+input{padding:6px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-size:14px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+button{padding:8px 14px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer;font-size:14px}
+button.p{background:var(--prog);color:#fff;border-color:var(--prog)}
+#err{color:var(--away);font-size:13px;margin-top:8px;min-height:18px}
+.stage{display:grid;grid-template-columns:150px 1fr;gap:12px}
+@media(max-width:640px){.stage{grid-template-columns:1fr}}
+.ta{border-radius:12px;padding:12px;text-align:center;color:#fff;transition:background .3s}
+.ta b{display:block;font-size:34px}
+.chairs,.prog{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 10px}
+.ch{width:56px;height:56px;border:2px dashed var(--bd);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mu)}
+.st{min-width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;transition:all .3s}
+.ch .st{width:44px;height:44px}
+.h{font-size:12px;color:var(--mu);margin:0}
+.lg{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--mu)}
+.lg i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+.sem{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;font-family:ui-monospace,monospace;font-size:13px}
+.sem div{background:var(--bg);border-radius:8px;padding:6px 8px}
+#log{height:170px;overflow:auto;font-family:ui-monospace,monospace;font-size:12px;background:var(--bg);border-radius:8px;padding:8px}
+</style></head><body>
+<h1>10. The Sleeping Teaching Assistant — Queue animation</h1>
+
+<div class="card">
+<div class="ctl">
+<label>Сандлын тоо (1–10)<input id="chairs" type="number" value="3"></label>
+<label>Оюутны тоо (1–20)<input id="n" type="number" value="8"></label>
+<label>Програмчлах дундаж хугацаа, с (1–30)<input id="prog" type="number" value="6"></label>
+<label>Тусламжийн хугацаа, с (1–15)<input id="help" type="number" value="3"></label>
+<label>Seed (бүхэл тоо)<input id="seed" type="number" value="1"></label>
+<label>Хурд (x)<input id="spd" type="number" value="1" step="0.5"></label>
+</div>
+<div class="btns">
+<button class="p" id="run">▶ Run</button><button id="pause">⏸ Pause</button>
+<button id="step">⏭ Step (1 с)</button><button id="reset">↺ Reset</button>
+</div>
+<div id="err"></div>
+</div>
+
+<div class="card">
+<div class="stage">
+<div class="ta" id="ta"><span>TA</span><b id="taI">😴</b><span id="taT"></span></div>
+<div>
+<p class="h">Хүлээх сандлууд (FIFO queue — зүүнээс баруун тийш дараалал)</p><div class="chairs" id="chairsV"></div>
+<p class="h">Програмчилж байгаа оюутнууд</p><div class="prog" id="progV"></div>
+</div></div>
+<div class="lg"><span><i style="background:var(--sleep)"></i>TA унтаж байна</span><span><i style="background:var(--help)"></i>Тусламж авч/өгч байна</span><span><i style="background:var(--wait)"></i>Сандал дээр хүлээж байна</span><span><i style="background:var(--prog)"></i>Програмчилж байна</span><span><i style="background:var(--away)"></i>Сандал дүүрэн, буцсан</span></div>
+</div>
+
+<div class="card"><div class="sem" id="sem"></div></div>
+<div class="card"><p class="h">Үйл явдлын лог</p><div id="log"></div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let S,timer=null,rng;
+function mul(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function read(){
+  const v={};const sp=[['chairs',1,10],['n',1,20],['prog',1,30],['help',1,15],['seed',-1e9,1e9],['spd',0.5,20]];
+  for(const[k,lo,hi]of sp){const x=Number($(k).value);
+    if($(k).value===''||!isFinite(x)){return err(`"${k}" талбарт тоо оруулна уу.`)}
+    if(x<lo||x>hi){return err(`"${k}" нь ${lo}–${hi} хооронд байх ёстой (одоо: ${x}).`)}
+    if(k!=='spd'&&!Number.isInteger(x)&&k!=='prog'&&k!=='help'){return err(`"${k}" бүхэл тоо байх ёстой.`)}
+    v[k]=x}
+  err('');return v}
+function err(m){$('err').textContent=m;return null}
+const rnd=()=>Math.max(0.5,S.p.prog*(0.5+rng()));
+function log(m){S.log.unshift(`[${S.t.toFixed(1)}с] ${m}`);if(S.log.length>60)S.log.pop()}
+function init(){
+  const p=read();if(!p)return false;stop();rng=mul(p.seed);
+  S={p,t:0,ta:{st:'sleep',left:0,cur:null},q:[],helped:0,away:0,wsum:0,
+     st:Array.from({length:p.n},(_,i)=>({id:i+1,state:'prog',left:0,w:0}))};
+  S.st.forEach(s=>s.left=rnd());S.log=[];log('Эхэллээ: TA унтаж байна.');draw();return true}
+function startHelp(s){S.ta={st:'help',left:S.p.help,cur:s};s.state='help';S.wsum+=s.w;s.w=0;}
+function arrive(s){
+  if(S.ta.st==='sleep'&&S.q.length===0){log(`Оюутан ${s.id} TA-г сэрээв → тусламж авч эхэллээ`);startHelp(s)}
+  else if(S.q.length<S.p.chairs){S.q.push(s);s.state='wait';s.w=0;log(`Оюутан ${s.id} сандал дээр суув (дараалал ${S.q.length}/${S.p.chairs})`)}
+  else{S.away++;s.left=rnd();log(`Оюутан ${s.id}: сандал дүүрэн → буцаж програмчлав`)}}
+function tick(){const d=0.1;S.t+=d;
+  for(const s of S.st){
+    if(s.state==='prog'){s.left-=d;if(s.left<=1e-9)arrive(s)}
+    else if(s.state==='wait')s.w+=d}
+  if(S.ta.st==='help'){S.ta.left-=d;
+    if(S.ta.left<=1e-9){const s=S.ta.cur;s.state='prog';s.left=rnd();S.helped++;log(`TA оюутан ${s.id}-д тусалж дууслаа`);
+      if(S.q.length){const nx=S.q.shift();log(`TA дараагийн оюутан ${nx.id}-г дуудав`);startHelp(nx)}
+      else{S.ta={st:'sleep',left:0,cur:null};log('Дараалал хоосон → TA унтлаа')}}}}
+function draw(){
+  const c=S.p.chairs,ta=S.ta;
+  const col={sleep:'var(--sleep)',help:'var(--help)',wait:'var(--wait)',prog:'var(--prog)'};
+  $('ta').style.background=ta.st==='sleep'?col.sleep:col.help;
+  $('taI').textContent=ta.st==='sleep'?'😴':'🧑‍🏫';
+  $('taT').textContent=ta.st==='sleep'?'Унтаж байна':`Оюутан ${ta.cur.id}-д тусалж байна (${Math.max(0,ta.left).toFixed(1)}с)`;
+  let h='';for(let i=0;i<c;i++){const s=S.q[i];h+=`<div class="ch">${s?`<div class="st" style="background:${col.wait}" title="хүлээсэн ${s.w.toFixed(1)}с">${s.id}</div>`:'хоосон'}</div>`}
+  $('chairsV').innerHTML=h;
+  $('progV').innerHTML=S.st.filter(s=>s.state==='prog').map(s=>`<div class="st" style="background:${col.prog}" title="${s.left.toFixed(1)}с-н дараа ирнэ">${s.id}</div>`).join('')||'<span class="h">—</span>';
+  const sem=S.q.length;
+  $('sem').innerHTML=`<div>students (хүлээж буй) = ${sem}</div><div>TA ready = ${ta.st==='sleep'?1:0}</div><div>chairs free = ${c-sem}/${c}</div><div>helped = ${S.helped}</div><div>turned away = ${S.away}</div><div>avg wait = ${S.helped?(S.wsum/S.helped).toFixed(2):'0.00'}с</div><div>t = ${S.t.toFixed(1)}с</div>`;
+  $('log').innerHTML=S.log.map(x=>`<div>${x}</div>`).join('')}
+function stop(){if(timer){clearInterval(timer);timer=null}}
+$('run').onclick=()=>{if(!S||timer)return;const p=read();if(!p)return;S.p.spd=p.spd;
+  timer=setInterval(()=>{tick();draw()},100/p.spd)};
+$('pause').onclick=stop;
+$('step').onclick=()=>{if(!S)return;stop();for(let i=0;i<10;i++)tick();draw()};
+$('reset').onclick=init;
+init();
+</script></body></html>
