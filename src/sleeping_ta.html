@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="mn"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sleeping Teaching Assistant — Queue animation</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light;
+--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mu:#5b6578;--bd:#d9dde5;--sleep:#7c5cd6;--help:#1f9d55;--wait:#e0a100;--prog:#3b82f6;--away:#d64545}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#14171d;--card:#1d222b;--tx:#e8ebf1;--mu:#9aa4b6;--bd:#333a47;--sleep:#a58cf0;--help:#43c27a;--wait:#f0b92e;--prog:#6aa3ff;--away:#f07272}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#14171d;--card:#1d222b;--tx:#e8ebf1;--mu:#9aa4b6;--bd:#333a47;--sleep:#a58cf0;--help:#43c27a;--wait:#f0b92e;--prog:#6aa3ff;--away:#f07272}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;padding:14px;max-width:1000px;margin-inline:auto}
+h1{font-size:20px;margin:4px 0 12px}h2{font-size:14px;margin:0 0 8px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+label{font-size:12px;color:var(--mu);display:flex;flex-direction:column;gap:3px}
+input{padding:6px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-size:14px;max-width:100%}
+input[type=range]{padding:0;width:100%}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+button{padding:8px 14px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer;font-size:14px}
+button.p{background:var(--prog);color:#fff;border-color:var(--prog)}
+#err{color:var(--away);font-size:13px;margin-top:8px;min-height:18px}
+#chk{font-size:13px;margin-top:6px}.ok{color:var(--help)}.bad{color:var(--away)}
+.stage{display:grid;grid-template-columns:170px 1fr;gap:12px}
+@media(max-width:640px){.stage{grid-template-columns:1fr}}
+.ta{border-radius:12px;padding:12px;text-align:center;color:#fff;transition:background .3s}
+.ta b{display:block;font-size:34px}
+.chairs,.prog{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 10px}
+.ch{width:56px;height:56px;border:2px dashed var(--bd);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mu)}
+.st{min-width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600}
+.ch .st{width:44px;height:44px}
+.h{font-size:12px;color:var(--mu);margin:0}
+.lg{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--mu)}
+.lg i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+.sem{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;font-family:ui-monospace,monospace;font-size:13px}
+.sem div{background:var(--bg);border-radius:8px;padding:6px 8px}
+#log{height:190px;overflow:auto;font-family:ui-monospace,monospace;font-size:12px;background:var(--bg);border-radius:8px;padding:8px}
+#log div:first-child{font-weight:700}
+</style></head><body>
+<h1>10. The Sleeping Teaching Assistant — Queue animation</h1>
+
+<div class="card">
+<h2>1) Эх сурвалж: C програмын бодит log эсвэл Demo</h2>
+<p class="h">Үндсэн горим: <code>./build/sleeping_ta ... -o run.csv</code> гаргасан log-ийг доор ачаална. Demo нь ижил event форматтай, C суулгаагүй үед туршихад зориулсан загвар.</p>
+<div class="btns"><label>C-ийн log (.csv)<input id="file" type="file" accept=".csv,.txt"></label></div>
+<div class="ctl" style="margin-top:10px">
+<label>Сандал (1–10)<input id="chairs" type="number" value="3"></label>
+<label>Оюутан (1–20)<input id="n" type="number" value="6"></label>
+<label>Дахин ирэх дундаж, с (0.1–30)<input id="prog" type="number" value="2" step="0.1"></label>
+<label>Тусламжийн хугацаа, с (0.1–15)<input id="help" type="number" value="1" step="0.1"></label>
+<label>Мөчлөг (1–20)<input id="rounds" type="number" value="3"></label>
+<label>Seed<input id="seed" type="number" value="1"></label>
+</div>
+<div class="btns"><button class="p" id="gen">Demo үүсгэх</button><button id="dl">Log (CSV) татах</button></div>
+<div id="err"></div><div id="chk"></div>
+</div>
+
+<div class="card">
+<div class="btns" style="margin-top:0">
+<button class="p" id="play">▶ Play</button><button id="pause">⏸ Pause</button>
+<button id="back">⏮ Алхам</button><button id="fwd">⏭ Алхам</button><button id="reset">↺ Reset</button>
+<label style="flex-direction:row;align-items:center;gap:6px">Хурд x<input id="spd" type="number" value="1" step="0.25" min="0.25" max="20" style="width:70px"></label>
+</div>
+<input type="range" id="sl" min="0" max="0" value="0" style="margin-top:10px">
+<p class="h" id="clock"></p>
+</div>
+
+<div class="card">
+<div class="stage">
+<div class="ta" id="ta"><span>TA</span><b id="taI">💤</b><span id="taT"></span></div>
+<div>
+<p class="h">Хүлээх сандлууд (FIFO: зүүн талаас эхэлж дуудагдана)</p><div class="chairs" id="chairsV"></div>
+<p class="h">Програмчилж байгаа оюутнууд</p><div class="prog" id="progV"></div>
+</div></div>
+<div class="lg"><span><i style="background:var(--sleep)"></i>TA унтаж байна</span><span><i style="background:var(--help)"></i>Тусламж</span><span><i style="background:var(--wait)"></i>Сандал дээр хүлээж байна</span><span><i style="background:var(--prog)"></i>Програмчилж байна</span><span><i style="background:var(--away)"></i>Сандал дүүрсэн тул буцсан (одоогийн event)</span></div>
+</div>
+<div class="card"><div class="sem" id="sem"></div></div>
+<div class="card"><h2>Event log (шинэ нь дээр)</h2><div id="log"></div></div>
+
+<script>
+const EV=['ARRIVE','SIT','FULL','TA_SLEEP','TA_WAKE','HELP_START','HELP_END','END'];
+function rngf(seed){let a=seed|0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+/* Demo: C програмтай ижил event загвартай дискрет симуляци */
+function genDemo(p){
+  const R=rngf(p.seed),ev=[],q=[],n=p.students,H=p.help*1000;let t=0,ta='sleep',cur=null,helpEnd=null;
+  const pr=()=>p.prog*1000*(0.5+R()),push=(e,s,qq)=>ev.push({t:Math.round(t*1000)/1000,e,s,q:qq});
+  const next=Array(n+1).fill(Infinity),left=Array(n+1).fill(p.rounds);
+  for(let i=1;i<=n;i++)next[i]=pr();
+  push('TA_SLEEP',0,0);
+  const start=()=>{const s=q.shift();cur=s;ta='help';helpEnd=t+H;push('HELP_START',s,q.length)};
+  for(;;){
+    let mt=Infinity,mi=0;for(let i=1;i<=n;i++)if(next[i]<mt){mt=next[i];mi=i}
+    const he=helpEnd===null?Infinity:helpEnd;
+    if(he===Infinity&&mt===Infinity)break;
+    if(he<=mt){t=he;const s=cur;push('HELP_END',s,q.length);cur=null;helpEnd=null;ta='idle';
+      if(left[s]>0)next[s]=t+pr();
+      if(q.length)start();else{push('TA_SLEEP',0,0);ta='sleep'}}
+    else{t=mt;const s=mi;next[s]=Infinity;left[s]--;push('ARRIVE',s,q.length);
+      if(q.length<p.chairs){q.push(s);push('SIT',s,q.length);if(ta==='sleep'){push('TA_WAKE',0,q.length);ta='idle';start()}}
+      else{push('FULL',s,q.length);if(left[s]>0)next[s]=t+pr()}}}
+  push('END',0,0);
+  return{meta:{chairs:p.chairs,students:n,prog:p.prog,help:p.help,rounds:p.rounds,seed:p.seed},ev}}
+
+function parseLog(text){const meta={},ev=[];
+  for(const raw of text.split(/\r?\n/)){const l=raw.trim();if(!l)continue;
+    if(l[0]==='#'){for(const kv of l.slice(1).trim().split(/\s+/)){const[k,v]=kv.split('=');if(k&&v!==undefined&&v!==''&&!isNaN(Number(v)))meta[k]=Number(v)}continue}
+    if(l.startsWith('time_ms'))continue;
+    const f=l.split(',');if(f.length!==4)throw new Error(`Буруу мөр: "${l.slice(0,40)}"`);
+    const[t,e,s,q]=f;if(!EV.includes(e)||t===''||s===''||q===''||isNaN(t)||isNaN(s)||isNaN(q))throw new Error(`Буруу event/утга: "${l.slice(0,40)}"`);
+    ev.push({t:+t,e,s:+s,q:+q})}
+  for(const k of['chairs','students','help','rounds'])if(!(k in meta))throw new Error('Header дутуу: "# chairs=.. students=.. help=.. rounds=.." (C програмын -o log биш байна уу?)');
+  if(!ev.length)throw new Error('Лог хоосон байна.');return{meta,ev}}
+
+/* Логийн зөв байдлыг шалгах (tests/check_log.py-тай ижил дүрэм) */
+function validate(meta,ev){const err=[],q=[],st={},arr={};let ta='idle',cur=null,last=-1,hs=0,helped=0,full=0;
+  const bad=(i,m)=>err.push(`#${i+1} ${ev[i].e}: ${m}`);
+  ev.forEach((x,i)=>{const{t,e,s,q:ql}=x,sv=st[s]||'prog';if(t<last)bad(i,'цаг буурсан');last=t;
+    if(e==='ARRIVE'){if(sv!=='prog')bad(i,'буруу төлөвт ирсэн');if(ql!==q.length)bad(i,'queue_len зөрсөн');st[s]='arrived';arr[s]=(arr[s]||0)+1}
+    else if(e==='SIT'){if(sv!=='arrived')bad(i,'ARRIVE-гүй суусан');if(q.length>=meta.chairs)bad(i,'сандлаас хэтэрсэн');q.push(s);if(ql!==q.length)bad(i,'queue_len зөрсөн');st[s]='waiting'}
+    else if(e==='FULL'){if(sv!=='arrived')bad(i,'ARRIVE-гүй буцсан');if(q.length!==meta.chairs)bad(i,'сандал дүүрээгүй атал буцсан');full++;st[s]='prog'}
+    else if(e==='TA_SLEEP'){if(ta!=='idle'||q.length)bad(i,'дараалал хоосон биш/завгүй үед унтсан');ta='sleep'}
+    else if(e==='TA_WAKE'){if(ta!=='sleep'||!q.length)bad(i,'буруу сэрсэн');ta='idle'}
+    else if(e==='HELP_START'){if(ta!=='idle')bad(i,'TA төлөв буруу');if(!q.length||q[0]!==s)bad(i,'FIFO зөрчигдсөн');else q.shift();if(ql!==q.length)bad(i,'queue_len зөрсөн');if(sv!=='waiting')bad(i,'хүлээгээгүй оюутан');st[s]='helping';ta='help';cur=s;hs=t}
+    else if(e==='HELP_END'){if(ta!=='help'||cur!==s)bad(i,'HELP_START байхгүй');if(t-hs<meta.help*900)bad(i,'тусламж хэт богино');if(ql!==q.length)bad(i,'queue_len зөрсөн');st[s]='prog';ta='idle';cur=null;helped++}
+    else if(e==='END'){if(i!==ev.length-1)bad(i,'END сүүлийнх биш');if(q.length||ta==='help')bad(i,'END үед дуусаагүй')}
+    if(q.length>meta.chairs)bad(i,'дараалал сандлаас их')});
+  if(ev[ev.length-1].e!=='END')err.push('END event байхгүй');
+  for(let s=1;s<=meta.students;s++)if((arr[s]||0)!==meta.rounds)err.push(`оюутан ${s}: ирэлт ${arr[s]||0} != ${meta.rounds}`);
+  if(helped+full!==meta.students*meta.rounds)err.push('helped+full != нийт ирэлт');
+  return err}
+
+/* idx ширхэг event хэрэглэсний дараах төлөв */
+function stateAt(ev,idx){const q=[],stu={},sit={};let ta='idle',cur=null,helped=0,full=0,sleeps=0,wsum=0,started=0;
+  for(let i=0;i<idx;i++){const x=ev[i];
+    if(x.e==='SIT'){q.push(x.s);stu[x.s]='wait';sit[x.s]=x.t}
+    else if(x.e==='FULL')full++;
+    else if(x.e==='TA_SLEEP'){ta='sleep';sleeps++}
+    else if(x.e==='TA_WAKE')ta='idle';
+    else if(x.e==='HELP_START'){const k=q.indexOf(x.s);if(k>=0)q.splice(k,1);stu[x.s]='help';cur=x.s;ta='help';wsum+=x.t-(sit[x.s]??x.t);started++}
+    else if(x.e==='HELP_END'){stu[x.s]='prog';cur=null;ta='idle';helped++}}
+  return{q,stu,ta,cur,helped,full,sleeps,avgw:started?wsum/started/1000:0}}
+
+if(typeof module!=='undefined')module.exports={genDemo,parseLog,validate,stateAt};
+
+if(typeof document!=='undefined'){
+const $=id=>document.getElementById(id);
+let D=null,idx=0,vt=0,playing=false,raf=null,lastTs=0;
+const MSG={ARRIVE:s=>`Оюутан ${s} ирлээ`,SIT:s=>`Оюутан ${s} сандал дээр суув`,FULL:s=>`Оюутан ${s}: сандал дүүрэн → буцав`,TA_SLEEP:()=>'TA унтлаа',TA_WAKE:()=>'TA сэрлээ',
+  HELP_START:s=>`TA оюутан ${s}-д тусалж эхэллээ`,HELP_END:s=>`TA оюутан ${s}-д тусалж дууслаа`,END:()=>'Дууслаа'};
+const err=m=>{$('err').textContent=m};
+function readParams(){const sp=[['chairs',1,10,1],['n',1,20,1],['prog',0.1,30,0],['help',0.1,15,0],['rounds',1,20,1],['seed',0,1e6,1]],v={};
+  for(const[k,lo,hi,int]of sp){const raw=$(k).value,x=Number(raw);
+    if(raw===''||!isFinite(x)){err(`"${k}" талбарт тоо оруулна уу.`);return null}
+    if(x<lo||x>hi){err(`"${k}" нь ${lo}–${hi} хооронд байх ёстой (одоо: ${x}).`);return null}
+    if(int&&!Number.isInteger(x)){err(`"${k}" бүхэл тоо байх ёстой.`);return null}v[k]=x}
+  err('');return{chairs:v.chairs,students:v.n,prog:v.prog,help:v.help,rounds:v.rounds,seed:v.seed}}
+function stop(){playing=false;if(raf)cancelAnimationFrame(raf);raf=null}
+function load(d,name){stop();D=d;idx=0;vt=0;$('sl').max=d.ev.length;
+  const e=validate(d.meta,d.ev);
+  $('chk').innerHTML=e.length?`<span class="bad">✖ Лог шалгалт (${name}): ${e.length} зөрчил — ${e.slice(0,3).join('; ')}</span>`
+    :`<span class="ok">✔ Лог шалгалт (${name}): ${d.ev.length} event, бүх invariant (FIFO, сандлын хязгаар, TA төлөв) биелсэн</span>`;
+  draw()}
+function draw(){if(!D)return;const{meta,ev}=D,s=stateAt(ev,idx),c=meta.chairs,n=meta.students,last=idx?ev[idx-1]:null;
+  const col={sleep:'var(--sleep)',help:'var(--help)',idle:'var(--prog)'};
+  $('ta').style.background=col[s.ta];$('taI').textContent=s.ta==='sleep'?'💤':s.ta==='help'?'🧑‍🏫':'🙂';
+  $('taT').textContent=s.ta==='sleep'?'Унтаж байна':s.ta==='help'?`Оюутан ${s.cur}-д тусалж байна`:'Сэрүүн, хүлээж байна';
+  let h='';for(let i=0;i<c;i++){const x=s.q[i];h+=`<div class="ch">${x?`<div class="st" style="background:var(--wait)">${x}</div>`:'хоосон'}</div>`}
+  $('chairsV').innerHTML=h;
+  let p='';for(let i=1;i<=n;i++)if(!s.stu[i]||s.stu[i]==='prog'){const away=last&&last.e==='FULL'&&last.s===i;p+=`<div class="st" style="background:${away?'var(--away)':'var(--prog)'}">${i}</div>`}
+  $('progV').innerHTML=p||'<span class="h">—</span>';
+  $('sem').innerHTML=`<div>students (хүлээж буй) = ${s.q.length}</div><div>chairs free = ${c-s.q.length}/${c}</div><div>туслагдсан = ${s.helped}</div><div>буцсан = ${s.full}</div><div>TA унтсан = ${s.sleeps}×</div><div>дундаж хүлээлт = ${s.avgw.toFixed(2)}с</div>`;
+  const t=last?last.t:0;$('clock').textContent=`t = ${(t/1000).toFixed(2)} с · event ${idx}/${ev.length}`;$('sl').value=idx;
+  let l='';for(let i=idx-1;i>=Math.max(0,idx-16);i--){const x=ev[i];l+=`<div>[${(x.t/1000).toFixed(2)}с] ${MSG[x.e](x.s)} · дараалал ${x.q}/${c}</div>`}
+  $('log').innerHTML=l}
+function tickf(ts){if(!playing)return;vt+=(ts-lastTs)*Number($('spd').value||1);lastTs=ts;
+  while(idx<D.ev.length&&D.ev[idx].t<=vt)idx++;draw();
+  if(idx>=D.ev.length){stop();return}raf=requestAnimationFrame(tickf)}
+function setIdx(i){stop();idx=Math.max(0,Math.min(D.ev.length,i));vt=idx?D.ev[idx-1].t:0;draw()}
+$('gen').onclick=()=>{const p=readParams();if(p)load(genDemo(p),'Demo')};
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;
+  if(f.size>5e6){err('Файл хэт том (5MB-аас бага байх ёстой).');return}
+  const r=new FileReader();r.onload=()=>{try{load(parseLog(r.result),f.name);err('')}catch(x){err('Log уншиж чадсангүй: '+x.message)}};r.readAsText(f)};
+$('play').onclick=()=>{if(!D||playing)return;const s=Number($('spd').value);if(!(s>=0.25&&s<=20)){err('Хурд 0.25–20 хооронд байх ёстой.');return}err('');
+  if(idx>=D.ev.length){idx=0;vt=0}playing=true;lastTs=performance.now();raf=requestAnimationFrame(tickf)};
+$('pause').onclick=stop;$('reset').onclick=()=>D&&setIdx(0);
+$('fwd').onclick=()=>D&&setIdx(idx+1);$('back').onclick=()=>D&&setIdx(idx-1);
+$('sl').oninput=e=>D&&setIdx(+e.target.value);
+$('dl').onclick=()=>{if(!D)return;const m=D.meta;
+  const t=`# chairs=${m.chairs} students=${m.students} prog=${m.prog} help=${m.help} rounds=${m.rounds} seed=${m.seed}\ntime_ms,event,student,queue_len\n`+D.ev.map(x=>`${x.t},${x.e},${x.s},${x.q}`).join('\n')+'\n';
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='demo_log.csv';a.click()};
+load(genDemo({chairs:3,students:6,prog:2,help:1,rounds:3,seed:1}),'Demo');
+}
+</script></body></html>
