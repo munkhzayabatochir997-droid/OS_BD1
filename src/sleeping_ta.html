@@ -35,8 +35,28 @@ button.p{background:var(--prog);color:#fff;border-color:var(--prog)}
 .sem div{background:var(--bg);border-radius:8px;padding:6px 8px}
 #log{height:190px;overflow:auto;font-family:ui-monospace,monospace;font-size:12px;background:var(--bg);border-radius:8px;padding:8px}
 #log div:first-child{font-weight:700}
+
+h1{font-size:22px;letter-spacing:-.2px}
+.sub{margin:-6px 0 14px;color:var(--mu);font-size:13px}
+.card{border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.04)}
+button{transition:transform .08s,box-shadow .15s}
+button:hover{box-shadow:0 2px 8px rgba(0,0,0,.18)}
+button:active{transform:translateY(1px)}
+.ta{min-height:150px;display:flex;flex-direction:column;justify-content:center;gap:4px;font-size:13px;
+ background-image:linear-gradient(160deg,rgba(255,255,255,.2),rgba(0,0,0,.12));box-shadow:0 4px 14px rgba(0,0,0,.22)}
+.ta b{font-size:48px;line-height:1.1}
+.ta.sleep b{animation:zz 3s ease-in-out infinite}
+.ta.help{animation:pulse 1.6s ease-in-out infinite}
+@keyframes zz{50%{transform:translateY(-4px);opacity:.7}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(31,157,85,.5)}50%{box-shadow:0 0 0 12px rgba(31,157,85,0)}}
+.ch{width:60px;height:60px;background:var(--bg);border:2px solid var(--bd);border-bottom-width:6px;border-radius:12px 12px 6px 6px}
+.st{box-shadow:0 2px 5px rgba(0,0,0,.25);font-size:14px}
+.sem div{border:1px solid var(--bd);border-radius:10px;padding:8px 10px}
+#log div{padding:1px 0}
+@media (prefers-reduced-motion:reduce){.ta.sleep b,.ta.help{animation:none}}
 </style></head><body>
 <h1>10. The Sleeping Teaching Assistant — Queue animation</h1>
+<p class="sub">C програмын бодит thread-үүдийн event log-оор дараалал ба TA-ийн төлвийг алхамчилж харуулна</p>
 
 <div class="card">
 <h2>1) Эх сурвалж: C програмын бодит log эсвэл Demo</h2>
@@ -45,7 +65,7 @@ button.p{background:var(--prog);color:#fff;border-color:var(--prog)}
 <div class="ctl" style="margin-top:10px">
 <label>Сандал (1–10)<input id="chairs" type="number" value="3"></label>
 <label>Оюутан (1–20)<input id="n" type="number" value="6"></label>
-<label>Дахин ирэх дундаж, с (0.1–30)<input id="prog" type="number" value="2" step="0.1"></label>
+<label>Ирэх давтамж: дундаж интервал, с (0.1–30)<input id="prog" type="number" value="2" step="0.1"></label>
 <label>Тусламжийн хугацаа, с (0.1–15)<input id="help" type="number" value="1" step="0.1"></label>
 <label>Мөчлөг (1–20)<input id="rounds" type="number" value="3"></label>
 <label>Seed<input id="seed" type="number" value="1"></label>
@@ -74,6 +94,9 @@ button.p{background:var(--prog);color:#fff;border-color:var(--prog)}
 <div class="lg"><span><i style="background:var(--sleep)"></i>TA унтаж байна</span><span><i style="background:var(--help)"></i>Тусламж</span><span><i style="background:var(--wait)"></i>Сандал дээр хүлээж байна</span><span><i style="background:var(--prog)"></i>Програмчилж байна</span><span><i style="background:var(--away)"></i>Сандал дүүрсэн тул буцсан (одоогийн event)</span></div>
 </div>
 <div class="card"><div class="sem" id="sem"></div></div>
+<div class="card"><h2>Дарааллын урт (цаг хугацаанаар) — босоо шугам нь одоогийн байрлал</h2>
+<svg id="qc" viewBox="0 0 600 90" style="width:100%;height:90px" role="img" aria-label="Дарааллын уртын график"></svg>
+<p class="h" id="qcl"></p></div>
 <div class="card"><h2>Event log (шинэ нь дээр)</h2><div id="log"></div></div>
 
 <script>
@@ -111,7 +134,7 @@ function parseLog(text){const meta={},ev=[];
   for(const k of['chairs','students','help','rounds'])if(!(k in meta))throw new Error('Header дутуу: "# chairs=.. students=.. help=.. rounds=.." (C програмын -o log биш байна уу?)');
   if(!ev.length)throw new Error('Лог хоосон байна.');return{meta,ev}}
 
-/* Логийн зөв байдлыг шалгах (tests/check_log.py-тай ижил дүрэм) */
+/* Логийн зөв байдлыг шалгах (tests/check_log.c-тай ижил дүрэм) */
 function validate(meta,ev){const err=[],q=[],st={},arr={};let ta='idle',cur=null,last=-1,hs=0,helped=0,full=0;
   const bad=(i,m)=>err.push(`#${i+1} ${ev[i].e}: ${m}`);
   ev.forEach((x,i)=>{const{t,e,s,q:ql}=x,sv=st[s]||'prog';if(t<last)bad(i,'цаг буурсан');last=t;
@@ -159,17 +182,21 @@ function load(d,name){stop();D=d;idx=0;vt=0;$('sl').max=d.ev.length;
   const e=validate(d.meta,d.ev);
   $('chk').innerHTML=e.length?`<span class="bad">✖ Лог шалгалт (${name}): ${e.length} зөрчил — ${e.slice(0,3).join('; ')}</span>`
     :`<span class="ok">✔ Лог шалгалт (${name}): ${d.ev.length} event, бүх invariant (FIFO, сандлын хязгаар, TA төлөв) биелсэн</span>`;
-  draw()}
+  chart();draw()}
+function chart(){const{meta,ev}=D,T=ev[ev.length-1].t||1,c=meta.chairs;let d='M0 82',py=82;
+  for(const x of ev){const X=(x.t/T*600).toFixed(1),Y=(82-x.q/c*72).toFixed(1);d+=` L${X} ${py} L${X} ${Y}`;py=Y}
+  $('qc').innerHTML=`<line x1="0" x2="600" y1="10" y2="10" stroke="var(--away)" stroke-dasharray="4 4"/><line x1="0" x2="600" y1="82" y2="82" stroke="var(--bd)"/><path d="${d}" fill="none" stroke="var(--wait)" stroke-width="2"/><line id="cur" x1="0" x2="0" y1="0" y2="90" stroke="var(--tx)"/>`;
+  $('qcl').textContent=`Тасархай шугам = бүх сандал дүүрсэн түвшин (${c}). Хамгийн их дараалал: ${Math.max(...ev.map(x=>x.q))}`}
 function draw(){if(!D)return;const{meta,ev}=D,s=stateAt(ev,idx),c=meta.chairs,n=meta.students,last=idx?ev[idx-1]:null;
   const col={sleep:'var(--sleep)',help:'var(--help)',idle:'var(--prog)'};
-  $('ta').style.background=col[s.ta];$('taI').textContent=s.ta==='sleep'?'💤':s.ta==='help'?'🧑‍🏫':'🙂';
+  $('ta').style.background=col[s.ta];$('ta').className='ta '+s.ta;$('taI').textContent=s.ta==='sleep'?'💤':s.ta==='help'?'🧑‍🏫':'🙂';
   $('taT').textContent=s.ta==='sleep'?'Унтаж байна':s.ta==='help'?`Оюутан ${s.cur}-д тусалж байна`:'Сэрүүн, хүлээж байна';
   let h='';for(let i=0;i<c;i++){const x=s.q[i];h+=`<div class="ch">${x?`<div class="st" style="background:var(--wait)">${x}</div>`:'хоосон'}</div>`}
   $('chairsV').innerHTML=h;
   let p='';for(let i=1;i<=n;i++)if(!s.stu[i]||s.stu[i]==='prog'){const away=last&&last.e==='FULL'&&last.s===i;p+=`<div class="st" style="background:${away?'var(--away)':'var(--prog)'}">${i}</div>`}
   $('progV').innerHTML=p||'<span class="h">—</span>';
   $('sem').innerHTML=`<div>students (хүлээж буй) = ${s.q.length}</div><div>chairs free = ${c-s.q.length}/${c}</div><div>туслагдсан = ${s.helped}</div><div>буцсан = ${s.full}</div><div>TA унтсан = ${s.sleeps}×</div><div>дундаж хүлээлт = ${s.avgw.toFixed(2)}с</div>`;
-  const t=last?last.t:0;$('clock').textContent=`t = ${(t/1000).toFixed(2)} с · event ${idx}/${ev.length}`;$('sl').value=idx;
+  const t=last?last.t:0;$('clock').textContent=`t = ${(t/1000).toFixed(2)} с · event ${idx}/${ev.length}`;$('sl').value=idx;const cu=$('cur');if(cu){const x=(t/(ev[ev.length-1].t||1)*600).toFixed(1);cu.setAttribute('x1',x);cu.setAttribute('x2',x)}
   let l='';for(let i=idx-1;i>=Math.max(0,idx-16);i--){const x=ev[i];l+=`<div>[${(x.t/1000).toFixed(2)}с] ${MSG[x.e](x.s)} · дараалал ${x.q}/${c}</div>`}
   $('log').innerHTML=l}
 function tickf(ts){if(!playing)return;vt+=(ts-lastTs)*Number($('spd').value||1);lastTs=ts;

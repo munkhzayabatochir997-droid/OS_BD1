@@ -29,7 +29,8 @@ static const char *outpath = NULL;
 
 /* Хуваалцсан төлөв: бүгд mutex `m`-ээр хамгаалагдана */
 static int queue[MAXC], qhead = 0, qcount = 0;   /* FIFO: хүлээх сандлууд */
-static int ta_done = 0;                           /* бүх оюутан дууссан */
+static int ta_done = 0;
+static int n_helped = 0, n_turned = 0, n_sleeps = 0;   /* дүнгийн тоолуурууд (m-ээр хамгаалагдана) */                           /* бүх оюутан дууссан */
 static pthread_mutex_t m  = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t lm = PTHREAD_MUTEX_INITIALIZER;   /* log-ийн mutex */
 static sem_t students_sem;                        /* хүлээж буй оюутны тоо; 0 бол TA унтна */
@@ -64,7 +65,7 @@ static void *ta_thread(void *arg) {
     for (;;) {
         int slept = 0;
         pthread_mutex_lock(&m);
-        if (qcount == 0 && !ta_done) { ev("TA_SLEEP", 0, 0); slept = 1; }
+        if (qcount == 0 && !ta_done) { ev("TA_SLEEP", 0, 0); slept = 1; n_sleeps++; }
         pthread_mutex_unlock(&m);
 
         sem_wait(&students_sem);                 /* унтах / сэрэх цэг */
@@ -78,7 +79,7 @@ static void *ta_thread(void *arg) {
 
         sem_post(&call_sem[s]);                  /* оюутныг дуудна */
         sleep_s(help_s);                         /* тусалж байна */
-        pthread_mutex_lock(&m); ev("HELP_END", s, qcount); pthread_mutex_unlock(&m);
+        pthread_mutex_lock(&m); ev("HELP_END", s, qcount); n_helped++; pthread_mutex_unlock(&m);
         sem_post(&fin_sem[s]);                   /* оюутан чөлөөлөгдөнө */
     }
     return NULL;
@@ -100,6 +101,7 @@ static void *student_thread(void *arg) {
             sem_wait(&fin_sem[id]);              /* тусламж дуустал хүлээх */
         } else {
             ev("FULL", id, qcount);              /* сандал дүүрэн: буцна */
+            n_turned++;
             pthread_mutex_unlock(&m);
         }
     }
@@ -108,7 +110,7 @@ static void *student_thread(void *arg) {
 
 static void usage(const char *p) {
     fprintf(stderr,
-        "Хэрэглээ: %s [-c сандал 1-10] [-n оюутан 1-20] [-p програмчлах дундаж с 0.01-60]\n"
+        "Хэрэглээ: %s [-c сандал 1-10] [-n оюутан 1-20] [-p оюутны ирэх давтамж: дундаж интервал с 0.01-60]\n"
         "          [-d тусламжийн хугацаа с 0.01-60] [-r мөчлөгийн тоо 1-100] [-s seed]\n"
         "          [-o log.csv] [-q]\n", p);
 }
@@ -163,5 +165,6 @@ int main(int argc, char **argv) {
     pthread_join(ta, NULL);
     ev("END", 0, 0);
     if (logf) fclose(logf);
+    if (!quiet) printf("Дүн: нийт ирэлт=%d, туслагдсан=%d, буцсан=%d, TA унтсан=%d\n", nstud * rounds, n_helped, n_turned, n_sleeps);
     return 0;
 }

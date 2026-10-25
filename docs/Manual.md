@@ -9,7 +9,9 @@
 1. *C-ийн бодит log (үндсэн):* `./build/sleeping_ta ... -o run.csv` → UI-ийн "C-ийн log" талбараас файл сонгоно.
 2. *Demo:* C-гүйгээр талбаруудыг бөглөж **Demo үүсгэх**.
 
-**Тохиргоо.** Сандал 1–10 · оюутан 1–20 · дахин ирэх дундаж хугацаа (с) · тусламжийн хугацаа (с) · мөчлөг · seed. Мужаас гадуур/хоосон/бүхэл биш утганд улаан мэдээлэл гарч, өмнөх дүрслэл өөрчлөгдөхгүй.
+**Тохиргоо.** Сандал 1–10 · оюутан 1–20 · **ирэх давтамж** (оюутан дахин ирэх дундаж интервал, с; бага байх тусам олон ирнэ) · тусламжийн хугацаа (с) · мөчлөг · seed. Мужаас гадуур/хоосон/бүхэл биш утганд улаан мэдээлэл гарч, өмнөх дүрслэл өөрчлөгдөхгүй.
+
+**График.** Дарааллын урт цаг хугацаанаар харагдаж, босоо шугам нь одоогийн event-ийн байрлалыг заана; тасархай шугам нь бүх сандал дүүрсэн түвшин.
 
 **Удирдлага.** ▶ Play, ⏸ Pause, ⏭/⏮ нэг event-ээр алхах, slider-аар дурын хугацаанд очих, ↺ Reset, хурд (0.25–20x), "Log татах" (Demo-г CSV болгох).
 
@@ -33,11 +35,12 @@
 | | |
 |---|---|
 | Clone | `git clone <repo-url> && cd F.CSM302_BD1_SleepingTA` |
-| OS / хэрэгсэл | Ubuntu 22.04+/macOS/WSL; gcc ≥ 9 (эсвэл clang), make, Python 3.8+, (сонголт) Node.js 16+ |
+| OS / хэрэгсэл | Ubuntu 22.04+/macOS/WSL; gcc ≥ 9 (эсвэл clang), make |
 | Dependency | Нэмэлт сангүй (libc, pthread) |
 | Build | `make` → `build/sleeping_ta` |
 | Run | `./build/sleeping_ta -c 3 -n 5 -p 1 -d 0.5 -r 3 -s 1 -o run.csv` |
-| Автомат тест | `make test` (C: 6 үндсэн/захын + 10 буруу оролт; UI model тест) |
+| Автомат тест | `make test` (6 үндсэн/захын + 13 буруу оролт; зөвхөн C, нэмэлт сан шаардахгүй) |
+| Stress тест | `make stress` (30 янзын тохиргоо, timeout=deadlock илрүүлнэ) |
 | Race шалгалт | `make tsan` |
 | Нэмэлт boundary/error | `-c 0`, `-c 11`, `-n 21`, `-p -1`, `-d 0`, `-r 0`, `-c abc` → exit code 2 |
 | Хүлээгдсэн үр дүн | Үндсэн тест `PASS: events=…, arrivals=N·R, helped+turned_away=N·R`; `Дүн: 16 амжилттай, 0 бүтэлгүйтсэн` |
@@ -46,3 +49,26 @@
 - Цаг хугацааны (sleep) програм тул ижил seed-тэй ч thread-үүдийн interleaving бага зэрэг өөр байж болно (програмчлах хугацаа ижил, event-ийн яг дараалал үл ялих зөрнө). Тиймээс тест нь log-ийн дүрэм (invariant)-ыг шалгадаг.
 - Windows (MSVC) дээр pthread/semaphore байхгүй тул WSL ашиглана.
 - UI-ийн Demo нь C програмын загвар (бодит thread биш); бодит нотолгоо нь C-ийн log.
+
+## 3. Windows хэрэглэгчид (WSL)
+C програм POSIX thread/semaphore ашигладаг тул Windows дээр шууд ажиллахгүй; **WSL (Ubuntu)** ашиглана. UI (`sleeping_ta.html`) нь Windows-ийн browser дээр шууд нээгдэнэ.
+
+1. PowerShell-ийг **администратороор** нээж: `wsl --install` → компьютерээ дахин асаана → Ubuntu-д хэрэглэгчийн нэр/нууц үг тохируулна.
+2. Ubuntu терминалд:
+   ```bash
+   sudo apt update && sudo apt install -y build-essential
+   ```
+3. Repo-г **WSL-ийн дотор** (`~/` доор, `/mnt/c/...` биш) clone хийнэ:
+   ```bash
+   cd ~ && git clone https://github.com/munkhzayabatochir997-droid/OS_BD1.git && cd OS_BD1
+   make test
+   ./build/sleeping_ta -c 3 -n 5 -p 1 -d 0.5 -r 3 -s 1 -o run.csv
+   ```
+4. Гарсан `run.csv`-г Windows-ийн browser-т ачаалахын тулд: Ubuntu-д `explorer.exe .` гэж бичвэл тэр хавтас Windows Explorer-т нээгдэнэ → `run.csv`-г UI-ийн "C-ийн log" талбараас сонгоно.
+5. **C-гүйгээр шалгах:** `examples/*.csv` нь C-ийн бодит гаралт тул шууд ачаалж болно; эсвэл UI-ийн **Demo** горим.
+
+| Алдаа (Windows/WSL) | Шалтгаан / шийдэл |
+|---|---|
+| `$'\r': command not found` (`run_tests.sh`) | Файл CRLF болсон. `sed -i 's/\r$//' tests/*.sh Makefile` эсвэл repo-г WSL дотор дахин clone хийнэ |
+| `make: command not found` | `sudo apt install build-essential` |
+| `/mnt/c/...` дээр удаан/permission алдаа | Repo-г `~/` доор clone хийнэ |

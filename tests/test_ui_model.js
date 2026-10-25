@@ -28,6 +28,13 @@ for (const f of fs.existsSync(exDir) ? fs.readdirSync(exDir).filter(x => x.endsW
     const d = parseLog(fs.readFileSync(path.join(exDir, f), 'utf8'));
     assert.deepStrictEqual(validate(d.meta, d.ev), []); });
 
+t('Windows CRLF log уншигдана', () => {
+  const txt = fs.readFileSync(path.join(exDir, 'basic_3chairs_5students.csv'), 'utf8').replace(/\n/g, '\r\n');
+  assert.deepStrictEqual(validate(...Object.values(parseLog(txt))), []); });
+t('Demo → CSV → parse → ижил event (round-trip)', () => {
+  const d = genDemo({ chairs: 2, students: 4, prog: 1, help: 1, rounds: 2, seed: 9 });
+  const m = d.meta, txt = `# chairs=${m.chairs} students=${m.students} prog=${m.prog} help=${m.help} rounds=${m.rounds} seed=${m.seed}\ntime_ms,event,student,queue_len\n` + d.ev.map(x => `${x.t},${x.e},${x.s},${x.q}`).join('\n');
+  assert.deepStrictEqual(parseLog(txt).ev, d.ev); });
 console.log('== Буруу log илрүүлэлт');
 const base = () => genDemo({ chairs: 3, students: 6, prog: 0.3, help: 2, rounds: 3, seed: 3 });
 t('FIFO зөрчил илрэнэ', () => { const d = base();

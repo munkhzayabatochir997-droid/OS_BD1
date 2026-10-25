@@ -30,7 +30,7 @@ Thread: 1 TA + N оюутан + main. Хуваалцсан төлөв (`queue[]`
 Өөрчилж турших: `-c -n -p -d -r -s` (C), мөн UI-ийн Demo талбарууд. Ажиглах: дараалал, TA төлөв, буцсан оюутан, тоолуур. Удирдлага: Play/Pause/алхам/slider/Reset/хурд. UI-ийн сурах бичигт заасан дүрслэл: сандал, дараалал, TA төлөв — бүгд log-оос гарна; log-ийг UI өөрөө шалгана. <Screenshot: U1–U6>
 
 ## 7. Туршилтын арга
-Орчин: <OS, gcc хувилбар, Node хувилбар>. Хүлээгдсэн үр дүн нь тест бүрд `tests/test_cases.md`-д. Үндсэн шалгуур — invariant: queue_len ≤ chairs, FIFO, TA нэг дор нэг оюутанд, унтах/сэрэх зөв, FULL зөвхөн дүүрэн үед, оюутан бүр `rounds` удаа, helped+turned_away = N·rounds, END-д дараалал хоосон.
+Орчин: <OS, gcc хувилбар>. Хүлээгдсэн үр дүн нь тест бүрд `tests/test_cases.md`-д. Үндсэн шалгуур — invariant: queue_len ≤ chairs, FIFO, TA нэг дор нэг оюутанд, унтах/сэрэх зөв, FULL зөвхөн дүүрэн үед, оюутан бүр `rounds` удаа, helped+turned_away = N·rounds, END-д дараалал хоосон.
 
 ## 8. Үр дүн
 | Тест | Тохиргоо (c,n,p,d,r,s) | helped | turned away | max queue | TA sleeps | Үр дүн |

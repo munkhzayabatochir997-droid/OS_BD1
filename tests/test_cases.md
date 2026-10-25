@@ -1,6 +1,6 @@
 # Тестийн хүснэгт
 Автомат: `make test` (C тест + UI model тест). ThreadSanitizer: `make tsan`.
-Цаг хугацаатай (sleep) програм тул log яг ижил байхгүй; тиймээс **invariant** шалгана (check_log.py):
+Цаг хугацаатай (sleep) програм тул log яг ижил байхгүй; тиймээс **invariant** шалгана (check_log.c):
 queue_len ≤ chairs · FIFO · TA нэг дор нэг оюутанд тусална · TA зөвхөн дараалал хоосон үед унтана ·
 FULL зөвхөн сандал дүүрэн үед · оюутан бүр яг `rounds` удаа ирсэн · helped + turned_away = нийт ирэлт · END үед дараалал хоосон.
 
@@ -13,12 +13,14 @@ FULL зөвхөн сандал дүүрэн үед · оюутан бүр яг `
 | T4 | Захын | -c 1 -n 1 -p 0.1 -d 0.1 -r 5 -s 4 | FULL гарахгүй | PASS: helped=5, ta_sleeps=6 |
 | T5 | Ачаалал | -c 10 -n 20 -p 0.1 -d 0.05 -r 3 -s 5 | invariant OK | PASS: max_queue=10, 192 event |
 | T6 | Өөр seed | -c 2 -n 6 -p 0.2 -d 0.15 -r 4 -s 99 | invariant OK | PASS |
-| E1–E10 | Буруу оролт | chairs 0/11, students 0/21, prog<0, help=0, rounds=0, "abc", үл мэдэгдэх сонголт, илүү аргумент | exit code 2 + ойлгомжтой мэдээлэл | бүгд зөв |
+| E1–E12 | Буруу оролт | chairs 0/11/3.5/"abc", students 0/21, prog<0, help=0, rounds=0, seed=-1, үл мэдэгдэх сонголт, илүү аргумент | exit code 2 + ойлгомжтой мэдээлэл | бүгд зөв |
+| E13 | Файл | `-o /nonexistent_dir/x.csv` | exit code 1 | зөв |
+| ST1 | Stress / deadlock | `make stress` (30 янзын c, n, seed; timeout 60 с) | бүгд invariant OK, timeout үгүй | 30/30 |
 | S1 | Race шалгалт | `make tsan` (ThreadSanitizer) | data race мэдээлэлгүй | PASS, анхааруулгагүй |
 
-## B. UI model (`node tests/test_ui_model.js`)
+## B. UI model (сонголтоор: `make test-ui`, Node.js шаардана)
 Demo generator-ын 5 тохиргоо, seed давтагдах чанар, `examples/*.csv` (C-ийн бодит log) parse + validate,
-хамгаалалт: FIFO зөрчсөн / сандлаас хэтэрсэн / END дутуу log-ийг илрүүлэх, parser-ийн алдаа (header дутуу, буруу event, хоосон).
+Windows CRLF log, Demo→CSV→parse round-trip, хамгаалалт: FIFO зөрчсөн / сандлаас хэтэрсэн / END дутуу log-ийг илрүүлэх, parser-ийн алдаа (header дутуу, буруу event, хоосон).
 
 ## C. UI гараар (screenshot авч Report-д оруулна)
 | # | Алхам | Хүлээгдсэн |

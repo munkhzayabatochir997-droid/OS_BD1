@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Автомат тест: Build → олон тохиргоогоор ажиллуулах → log-ийг check_log.py-аар шалгах → буруу оролтын тест
+# Автомат тест: Build → олон тохиргоогоор ажиллуулах → log-ийг check_log-оор шалгах → буруу оролтын тест
 cd "$(dirname "$0")/.." || exit 1
 make -s || { echo "BUILD FAIL"; exit 1; }
 BIN=build/sleeping_ta; T=$(mktemp -d); pass=0; fail=0
 ok()   { echo "  ✔ $1"; pass=$((pass+1)); }
 no()   { echo "  ✘ $1"; fail=$((fail+1)); }
 run()  { name=$1; shift; flag=$1; shift
-         $BIN "$@" -q -o "$T/l.csv" && out=$(python3 tests/check_log.py "$T/l.csv" $flag) && ok "$name — $out" || no "$name — ${out:-ажиллаагүй}"; }
+         timeout 60 $BIN "$@" -q -o "$T/l.csv" && out=$(build/check_log "$T/l.csv" $flag) && ok "$name — $out" || no "$name — ${out:-ажиллаагүй}"; }
 err()  { name=$1; shift; $BIN "$@" >/dev/null 2>"$T/e"; rc=$?
          [ $rc -eq 2 ] && [ -s "$T/e" ] && ok "$name (rc=2, мэдээлэл: $(head -1 "$T/e"))" || no "$name (rc=$rc)"; }
 echo "== Үндсэн ба захын тест"
@@ -22,4 +22,6 @@ err "E3 students=0"     -n 0;      err "E4 students=21" -n 21
 err "E5 prog<0"         -p -1;     err "E6 help=0"      -d 0
 err "E7 rounds=0"       -r 0;      err "E8 chairs=abc"  -c abc
 err "E9 үл мэдэгдэх -x" -x;        err "E10 илүү аргумент" foo
+err "E11 chairs=3.5 (бүхэл биш)" -c 3.5;  err "E12 seed=-1" -s -1
+$BIN -q -o /nonexistent_dir/x.csv >/dev/null 2>&1; [ $? -eq 1 ] && ok "E13 log файл нээгдэхгүй (rc=1)" || no "E13 log файл нээгдэхгүй"
 rm -rf "$T"; echo "== Дүн: $pass амжилттай, $fail бүтэлгүйтсэн"; [ $fail -eq 0 ]
