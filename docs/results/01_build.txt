@@ -1,0 +1,4 @@
+mkdir -p build
+cc -Wall -Wextra -O2 -pthread -o build/sleeping_ta src/sleeping_ta.c
+mkdir -p build
+cc -Wall -Wextra -O2 -o build/check_log tests/check_log.c
