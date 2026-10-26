@@ -17,6 +17,9 @@ FULL зөвхөн сандал дүүрэн үед · оюутан бүр яг `
 | E13 | Файл | `-o /nonexistent_dir/x.csv` | exit code 1 | зөв |
 | ST1 | Stress / deadlock | `make stress` (30 янзын c, n, seed; timeout 60 с) | бүгд invariant OK, timeout үгүй | 30/30 |
 | S1 | Race шалгалт | `make tsan` (ThreadSanitizer) | data race мэдээлэлгүй | PASS, анхааруулгагүй |
+| N1 | Race condition | `sleeping_ta -c 1 -n 8 -p 0.05 -d 0.05 -r 3 -s K --no-mutex` (K=1..8 хүртэл) | `check_log` FAIL (сандлаас хэтэрсэн) эсвэл watchdog rc=3 | Хоёулангийн нэг нь гарсан бол PASS |
+| N2 | `--no-mutex` log header | дээрхийг ажиллуулж log-ийн эхний мөрийг харах | `mutex=0` бичигдсэн | PASS |
+| E14 | Үл мэдэгдэх урт сонголт | `sleeping_ta --no-mutex --bogus` | rc=2, алдааны мэдээлэл | PASS |
 
 ## B. UI model (сонголтоор: `make test-ui`, Node.js шаардана)
 Demo generator-ын 5 тохиргоо, seed давтагдах чанар, `examples/*.csv` (C-ийн бодит log) parse + validate,

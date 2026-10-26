@@ -34,7 +34,7 @@
 ## 2. Operational заавар
 | | |
 |---|---|
-| Clone | `git clone <repo-url> && cd F.CSM302_BD1_SleepingTA` |
+| Clone | `git clone https://github.com/munkhzayabatochir997-droid/OS_BD1.git && cd OS_BD1` |
 | OS / хэрэгсэл | Ubuntu 22.04+/macOS/WSL; gcc ≥ 9 (эсвэл clang), make |
 | Dependency | Нэмэлт сангүй (libc, pthread) |
 | Build | `make` → `build/sleeping_ta` |

@@ -2,9 +2,19 @@ name: CI
 on: [push, pull_request]
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: Build & test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
-      - run: make test
-      - run: make tsan
-      - run: make stress
+      - name: Build (-Werror)
+        run: make CFLAGS="-Wall -Wextra -Werror -O2 -pthread"
+      - name: Tests (Үндсэн, захын, буруу оролт, --no-mutex)
+        run: make test CFLAGS="-Wall -Wextra -Werror -O2 -pthread"
+      - name: ThreadSanitizer
+        run: make tsan
+      - name: Stress
+        run: make stress CFLAGS="-Wall -Wextra -Werror -O2 -pthread"
