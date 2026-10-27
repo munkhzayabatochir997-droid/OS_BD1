@@ -45,10 +45,10 @@ make stress                                                # 30 янзын то�
 **Windows:** C програмыг WSL (Ubuntu) дотор ажиллуулна, UI-г Windows-ийн browser-т нээнэ — `docs/Manual.md` §3. C-гүйгээр `examples/*.csv`-г UI-д ачаалж болно.
 
 ## Багийн гишүүд
-| Гишүүн | GitHub | Хариуцсан ажил |
+| Гишүүн | GitHub | 
 |---|---|---|
-| <нэр> | <username> | <жишээ: C хэрэгжилт, тест> |
-| <нэр> | <username> | <жишээ: UI, Manual> |
+| <нэр> | <Б. Мөнхзаяа /B241940022/user-munkhzayabatochir997 -droid>  
+| <нэр> | <Н. Сүх-Амар //user-SuhAmar>
 
 ## Бүтэц
 `src/` эх код · `tests/` тест (`run_tests.sh`, `check_log.c`, `test_ui_model.js`, `test_cases.md`) · `examples/` бодит log · `docs/` Manual, Report
