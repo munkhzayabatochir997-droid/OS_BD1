@@ -48,7 +48,7 @@ make stress                                                # 30 янзын то�
 | Гишүүн | GitHub | 
 |---|---|---|
 | <нэр> | <Б. Мөнхзаяа /B241940022/user-munkhzayabatochir997 -droid>  
-| <нэр> | <Н. Сүх-Амар //user-SuhAmar>
+| <нэр> | <Н. Сүх-Амар /B231940125/user-SuhAmar>
 
 ## Бүтэц
 `src/` эх код · `tests/` тест (`run_tests.sh`, `check_log.c`, `test_ui_model.js`, `test_cases.md`) · `examples/` бодит log · `docs/` Manual, Report
