@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| Хуваарилалтын код | 10 |
+| Хуваарилалтын код | V-1-10 |
 | Сурах бичгийн бүлэг | Synchronization Examples |
 | Үндсэн дүрслэл | Queue animation |
 | Хэл / сан | C (Pthreads, POSIX semaphore, mutex) · HTML/JavaScript (UI) |
