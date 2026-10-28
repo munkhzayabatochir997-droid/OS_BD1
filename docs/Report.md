@@ -9,7 +9,7 @@
 | **Хуваарилалтын код** | V-1-10 |
 | **Шалгасан багш** | Г.Ганбат /F.CS10/ |
 | **Гүйцэтгэсэн оюутан** | Б.Мөнхзаяа /B241940022/, Н.Сүх-Амар /B231940125/, /B221940502/, /B241910033/, /B242270802/ |
-| **Repository** | https://github.com/munkhzayabatochir997-droid/OS_BD1 |
+| **Repository** | github.com/munkhzayabatochir997-droid/OS_BD1 |
 
 Улаанбаатар хот, 2026 он
 
@@ -221,7 +221,7 @@ Log-ийн эхний мөр нь тохиргоог (`# chairs=3 students=5 pro
 |---|---|
 | Оролтын муж (C) | сандал 1–10, оюутан 1–20, ирэх давтамж 0.01–60 с, тусламж 0.01–60 с, мөчлөг 1–100, seed 0–1000000; муж/төрлөөс гадуур бол exit 2 |
 | Оролтын муж (UI Demo) | сандал 1–10, оюутан 1–20, давтамж 0.1–30 с, тусламж 0.1–15 с, мөчлөг 1–20; буруу бол улаан мэдээлэл, өмнөх дүрслэл хэвээр |
-| Ашиглагдах semaphore | 1 + 2·(20 + 1) = 43 (`students`, `call[i]`, `fin[i]`); Linux дээр `sem_init`, macOS дээр `sem_open` |
+| Дуудагдсан semaphore | 1 + 2·(20 + 1) = 43 (`students`, `call[i]`, `fin[i]`); Linux дээр `sem_init`, macOS дээр `sem_open` |
 | Log-ийн бүрэн бүтэн байдал | `lm` түгжээ нь `--no-mutex` үед ч идэвхтэй: файлын мөр холилдохгүй |
 | Watchdog (`--no-mutex`) | `alarm()` хугацаа хэтэрвэл exit code 3 (race-ээс болж гацсан), log хэвээр үлдэнэ |
 | UI файлын хэмжээ | ачаалах log-ийн дээд хэмжээ 5 MB |
@@ -533,10 +533,13 @@ UI нь C-ийн гаралттай нийцэж буйг шалгасан. `-c 
 
 ## Ашигласан материал
 
-1. A. Silberschatz, P. B. Galvin, G. Gagne. *Operating System Concepts*. Wiley. Synchronization Examples бүлэг, Programming Project "The Sleeping Teaching Assistant".
-2. The Open Group. POSIX.1: `pthread_create`, `pthread_mutex_lock/unlock`, `sem_init`, `sem_open`, `sem_wait`, `sem_post`, `sem_unlink`, `nanosleep`; Linux `sem_overview(7)`.
-3. Багийн repository: https://github.com/munkhzayabatochir997-droid/OS_BD1 (README, `docs/Manual.md`, `docs/results/`).
-4. Claude (Anthropic): код, тест, баримт шинэчлэхэд туслав (багаар шалгасан).
+[1] A. Silberschatz, P. B. Galvin, G. Gagne. *Operating System Concepts*. Wiley. Synchronization Examples бүлэг, Programming Project "The Sleeping Teaching Assistant".
+
+[2] The Open Group. POSIX.1: `pthread_create`, `pthread_mutex_lock/unlock`, `sem_init`, `sem_open`, `sem_wait`, `sem_post`, `sem_unlink`, `nanosleep`; Linux `sem_overview(7)`.
+
+[3] Багийн repository: github.com/munkhzayabatochir997-droid/OS_BD1 (README, `docs/Manual.md`, `docs/results/`).
+
+[4] Claude (Anthropic): код, тест, баримт шинэчлэхэд туслав (багаар шалгасан).
 
 ---
 
