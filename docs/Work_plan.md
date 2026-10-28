@@ -1,10 +1,11 @@
 # Хавсралт A. Ажлын төлөвлөгөө
+
 | Талбар | Мэдээлэл |
 |---|---|
-| Хуваарилалтын код | 10 |
+| Хуваарилалтын код | V-1-10 |
 | Төсөл | The Sleeping Teaching Assistant |
 | Repository | https://github.com/munkhzayabatochir997-droid/OS_BD1 |
-| Хэл/сан/орчин | C (Pthreads, POSIX semaphore) · HTML/JS · Linux/WSL |
+| Хэл/сан/орчин | C (Pthreads, POSIX semaphore, mutex), HTML/JavaScript; Linux, macOS, WSL |
 | Үндсэн дүрслэл | Queue animation (сандал, дараалал, TA төлөв) |
 
 | Гишүүн | Хариуцах ажил | Commit/file |
@@ -14,6 +15,10 @@
 
 | Тест | Оролт/нөхцөл | Хүлээгдсэн үр дүн |
 |---|---|---|
-| T1 | -c 3 -n 5 -p 0.3 -d 0.2 -r 3 | invariant OK, дараалал ≤ 3 |
-| T2 | -c 1 -n 10 | олон оюутан буцна |
-| E1 | -c 0 | алдааны мэдээлэл, exit code 2 |
+| T1 | `-c 3 -n 5 -p 0.3 -d 0.2 -r 3 -s 1` | invariant OK, дараалал ≤ 3 |
+| T2 | `-c 1 -n 10 -p 0.1 -d 0.3 -r 2 -s 2` | Олон оюутан буцна (FULL гарна) |
+| T3 | `-c 10 -n 3 -p 0.3 -d 0.1 -r 3 -s 3` | FULL гарахгүй, TA олон удаа унтана |
+| E1 | `-c 0` | Алдааны мэдээлэл, exit code 2 |
+| N1 | `-c 1 -n 8 -p 0.05 -d 0.05 -r 3 -s K --no-mutex` | `check_log` FAIL (сандлаас хэтэрсэн) эсвэл watchdog exit 3 |
+| ST1 | `make stress` (30 янзын c, n, seed) | Бүгд invariant OK, timeout үгүй |
+| S1 | `make tsan` | Data race мэдээлэлгүй, log PASS |
