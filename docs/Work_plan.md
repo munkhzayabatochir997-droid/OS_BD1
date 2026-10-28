@@ -9,11 +9,8 @@
 
 | Гишүүн | Хариуцах ажил | Commit/file |
 |---|---|---|
-| 1 <нэр> | <жишээ: C хэрэгжилт> | src/sleeping_ta.c |
-| 2 <нэр> | <жишээ: UI ба log parser> | src/sleeping_ta.html |
-| 3 <нэр> | <жишээ: тест, stress> | tests/ |
-| 4 <нэр> | <жишээ: Manual, screenshot> | docs/ |
-| 5 <нэр> | <жишээ: тайлан, Teams пост> | docs/Report.md |
+| 1 Б. Мөнхзаяа | C хэрэгжилт, тест | src/sleeping_ta.c, tests/ |
+| 2 Н. Сүх-Амар | UI, Manual, тайлан | src/sleeping_ta.html, docs/ |
 
 | Тест | Оролт/нөхцөл | Хүлээгдсэн үр дүн |
 |---|---|---|
