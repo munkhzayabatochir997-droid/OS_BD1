@@ -9,11 +9,8 @@
 
 | Гишүүн | Хариуцах ажил | Commit/file |
 |---|---|---|
-| 1 <нэр> | <жишээ: C хэрэгжилт> | src/sleeping_ta.c |
-| 2 <нэр> | <жишээ: UI ба log parser> | src/sleeping_ta.html |
-| 3 <нэр> | <жишээ: тест, stress> | tests/ |
-| 4 <нэр> | <жишээ: Manual, screenshot> | docs/ |
-| 5 <нэр> | <жишээ: тайлан, Teams пост> | docs/Report.md |
+| Б.Мөнхзаяа /B241940022/ | C хэрэгжилт (pthreads, semaphore, mutex, `--no-mutex`, macOS), log-оор animation UI, `check_log` шалгагч, тест, Makefile, CI, README, жишээ log | `src/`, `tests/`, `examples/`, `Makefile`, `.github/`, `README.md` (13 commit) |
+| Н.Сүх-Амар /B231940125/ | Manual-ийг өөр машин (Debian 13) дээр дагаж Build/Run/Test хийж нотолгоо цуглуулах; UI screenshot U1–U6; Manual, Report-ийн үр дүн шинэчлэх; Pull Request #1 | `docs/Manual.md`, `docs/Report.md`, `docs/results/`, `docs/images/`, `examples/debian_3chairs_5students_seed1.csv` (4 commit, `suhamar-manual` branch) |
 
 | Тест | Оролт/нөхцөл | Хүлээгдсэн үр дүн |
 |---|---|---|
