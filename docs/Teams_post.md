@@ -1,4 +1,4 @@
-﻿**Гарчиг:** 10 – The Sleeping Teaching Assistant
+**Гарчиг:** V-1-10 – The Sleeping Teaching Assistant
 
 Код: V-1-10
 Төсөл: The Sleeping Teaching Assistant
