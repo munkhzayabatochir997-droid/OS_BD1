@@ -3,7 +3,7 @@
  * Run:   build/check_log run.csv [--expect-full | --expect-no-full]
  * Exit: 0 = PASS, 1 = FAIL, 2 = файл/хэрэглээний алдаа
  *
- * Засвар (peer review-ийн дагуу): TA_SLEEP/TA_WAKE/FULL/END-ийн student ба queue_len талбар,
+ * Засвар (БД2, багийн дотоод шалгалт): TA_SLEEP/TA_WAKE/FULL/END-ийн student ба queue_len талбар,
  * студентийн дугаарын муж (1..students), тусламжийн хугацааны шалгалтыг чангалав. */
 #include <stdarg.h>
 #include <stdio.h>

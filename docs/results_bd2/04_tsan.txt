@@ -1,0 +1,3 @@
+cc -Wall -g -O1 -fsanitize=thread -pthread -o build/sleeping_ta_tsan src/sleeping_ta.c
+./build/sleeping_ta_tsan -c 2 -n 6 -p 0.1 -d 0.05 -r 3 -q -o build/tsan.csv && build/check_log build/tsan.csv
+PASS: events=64, arrivals=18, helped=12, turned_away=6, max_queue=2, ta_sleeps=2

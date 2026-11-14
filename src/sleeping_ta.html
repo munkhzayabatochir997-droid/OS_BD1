@@ -137,15 +137,19 @@ function parseLog(text){const meta={},ev=[];
 /* Логийн зөв байдлыг шалгах (tests/check_log.c-тай ижил дүрэм) */
 function validate(meta,ev){const err=[],q=[],st={},arr={};let ta='idle',cur=null,last=-1,hs=0,helped=0,full=0;
   const bad=(i,m)=>err.push(`#${i+1} ${ev[i].e}: ${m}`);
-  ev.forEach((x,i)=>{const{t,e,s,q:ql}=x,sv=st[s]||'prog';if(t<last)bad(i,'цаг буурсан');last=t;
+  const SEV=['ARRIVE','SIT','FULL','HELP_START','HELP_END'];
+  ev.forEach((x,i)=>{const{t,e,s,q:ql}=x,sv=st[s]||'prog';
+    if(SEV.includes(e)){if(!(s>=1&&s<=meta.students)){bad(i,`студентийн дугаар ${s} муж (1..${meta.students})-аас гадуур`);return}}
+    else if(s!==0)bad(i,`student талбар 0 байх ёстой (өгсөн: ${s})`);
+    if(t<last)bad(i,'цаг буурсан');last=t;
     if(e==='ARRIVE'){if(sv!=='prog')bad(i,'буруу төлөвт ирсэн');if(ql!==q.length)bad(i,'queue_len зөрсөн');st[s]='arrived';arr[s]=(arr[s]||0)+1}
     else if(e==='SIT'){if(sv!=='arrived')bad(i,'ARRIVE-гүй суусан');if(q.length>=meta.chairs)bad(i,'сандлаас хэтэрсэн');q.push(s);if(ql!==q.length)bad(i,'queue_len зөрсөн');st[s]='waiting'}
-    else if(e==='FULL'){if(sv!=='arrived')bad(i,'ARRIVE-гүй буцсан');if(q.length!==meta.chairs)bad(i,'сандал дүүрээгүй атал буцсан');full++;st[s]='prog'}
-    else if(e==='TA_SLEEP'){if(ta!=='idle'||q.length)bad(i,'дараалал хоосон биш/завгүй үед унтсан');ta='sleep'}
-    else if(e==='TA_WAKE'){if(ta!=='sleep'||!q.length)bad(i,'буруу сэрсэн');ta='idle'}
+    else if(e==='FULL'){if(sv!=='arrived')bad(i,'ARRIVE-гүй буцсан');if(q.length!==meta.chairs)bad(i,'сандал дүүрээгүй атал буцсан');if(ql!==q.length)bad(i,'queue_len зөрсөн');full++;st[s]='prog'}
+    else if(e==='TA_SLEEP'){if(ta!=='idle'||q.length)bad(i,'дараалал хоосон биш/завгүй үед унтсан');if(ql!==0)bad(i,`TA_SLEEP-д queue_len=0 байх ёстой (өгсөн: ${ql})`);ta='sleep'}
+    else if(e==='TA_WAKE'){if(ta!=='sleep'||!q.length)bad(i,'буруу сэрсэн');if(ql!==q.length)bad(i,'queue_len зөрсөн');ta='idle'}
     else if(e==='HELP_START'){if(ta!=='idle')bad(i,'TA төлөв буруу');if(!q.length||q[0]!==s)bad(i,'FIFO зөрчигдсөн');else q.shift();if(ql!==q.length)bad(i,'queue_len зөрсөн');if(sv!=='waiting')bad(i,'хүлээгээгүй оюутан');st[s]='helping';ta='help';cur=s;hs=t}
-    else if(e==='HELP_END'){if(ta!=='help'||cur!==s)bad(i,'HELP_START байхгүй');if(t-hs<meta.help*900)bad(i,'тусламж хэт богино');if(ql!==q.length)bad(i,'queue_len зөрсөн');st[s]='prog';ta='idle';cur=null;helped++}
-    else if(e==='END'){if(i!==ev.length-1)bad(i,'END сүүлийнх биш');if(q.length||ta==='help')bad(i,'END үед дуусаагүй')}
+    else if(e==='HELP_END'){if(ta!=='help'||cur!==s)bad(i,'HELP_START байхгүй');if(t-hs<meta.help*1000*0.99)bad(i,'тусламж хэт богино');if(ql!==q.length)bad(i,'queue_len зөрсөн');st[s]='prog';ta='idle';cur=null;helped++}
+    else if(e==='END'){if(i!==ev.length-1)bad(i,'END сүүлийнх биш');if(q.length||ta==='help')bad(i,'END үед дуусаагүй');if(ql!==0)bad(i,`END-д queue_len=0 байх ёстой (өгсөн: ${ql})`)}
     if(q.length>meta.chairs)bad(i,'дараалал сандлаас их')});
   if(ev[ev.length-1].e!=='END')err.push('END event байхгүй');
   for(let s=1;s<=meta.students;s++)if((arr[s]||0)!==meta.rounds)err.push(`оюутан ${s}: ирэлт ${arr[s]||0} != ${meta.rounds}`);
