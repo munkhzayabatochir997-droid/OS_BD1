@@ -4,9 +4,9 @@
 <title>Sleeping Teaching Assistant — Queue animation</title>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light;
---bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mu:#5b6578;--bd:#d9dde5;--sleep:#7c5cd6;--help:#1f9d55;--wait:#e0a100;--prog:#3b82f6;--away:#d64545}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#14171d;--card:#1d222b;--tx:#e8ebf1;--mu:#9aa4b6;--bd:#333a47;--sleep:#a58cf0;--help:#43c27a;--wait:#f0b92e;--prog:#6aa3ff;--away:#f07272}}
-:root[data-theme="dark"]{color-scheme:dark;--bg:#14171d;--card:#1d222b;--tx:#e8ebf1;--mu:#9aa4b6;--bd:#333a47;--sleep:#a58cf0;--help:#43c27a;--wait:#f0b92e;--prog:#6aa3ff;--away:#f07272}
+--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mu:#5b6578;--bd:#d9dde5;--sleep:#7c5cd6;--help:#1f9d55;--wait:#e0a100;--prog:#3b82f6;--away:#d64545;--idle:#0e9488}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#14171d;--card:#1d222b;--tx:#e8ebf1;--mu:#9aa4b6;--bd:#333a47;--sleep:#a58cf0;--help:#43c27a;--wait:#f0b92e;--prog:#6aa3ff;--away:#f07272;--idle:#2cc4b4}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#14171d;--card:#1d222b;--tx:#e8ebf1;--mu:#9aa4b6;--bd:#333a47;--sleep:#a58cf0;--help:#43c27a;--wait:#f0b92e;--prog:#6aa3ff;--away:#f07272;--idle:#2cc4b4}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;padding:14px;max-width:1000px;margin-inline:auto}
 h1{font-size:20px;margin:4px 0 12px}h2{font-size:14px;margin:0 0 8px}
@@ -65,9 +65,9 @@ button:active{transform:translateY(1px)}
 <div class="ctl" style="margin-top:10px">
 <label>Сандал (1–10)<input id="chairs" type="number" value="3"></label>
 <label>Оюутан (1–20)<input id="n" type="number" value="6"></label>
-<label>Ирэх давтамж: дундаж интервал, с (0.1–30)<input id="prog" type="number" value="2" step="0.1"></label>
-<label>Тусламжийн хугацаа, с (0.1–15)<input id="help" type="number" value="1" step="0.1"></label>
-<label>Мөчлөг (1–20)<input id="rounds" type="number" value="3"></label>
+<label>Ирэх давтамж: дундаж интервал, с (0.01–60)<input id="prog" type="number" value="2" step="0.1"></label>
+<label>Тусламжийн хугацаа, с (0.01–60)<input id="help" type="number" value="1" step="0.1"></label>
+<label>Мөчлөг (1–100)<input id="rounds" type="number" value="3"></label>
 <label>Seed<input id="seed" type="number" value="1"></label>
 </div>
 <div class="btns"><button class="p" id="gen">Demo үүсгэх</button><button id="dl">Log (CSV) татах</button></div>
@@ -91,7 +91,7 @@ button:active{transform:translateY(1px)}
 <p class="h">Хүлээх сандлууд (FIFO: зүүн талаас эхэлж дуудагдана)</p><div class="chairs" id="chairsV"></div>
 <p class="h">Програмчилж байгаа оюутнууд</p><div class="prog" id="progV"></div>
 </div></div>
-<div class="lg"><span><i style="background:var(--sleep)"></i>TA унтаж байна</span><span><i style="background:var(--help)"></i>Тусламж</span><span><i style="background:var(--wait)"></i>Сандал дээр хүлээж байна</span><span><i style="background:var(--prog)"></i>Програмчилж байна</span><span><i style="background:var(--away)"></i>Сандал дүүрсэн тул буцсан (одоогийн event)</span></div>
+<div class="lg"><span><i style="background:var(--sleep)"></i>TA унтаж байна</span><span><i style="background:var(--idle)"></i>TA сэрүүн, оюутан хүлээж байна</span><span><i style="background:var(--help)"></i>Тусламж</span><span><i style="background:var(--wait)"></i>Сандал дээр хүлээж байна</span><span><i style="background:var(--prog)"></i>Програмчилж байна</span><span><i style="background:var(--away)"></i>Сандал дүүрсэн тул буцсан (одоогийн event)</span></div>
 </div>
 <div class="card"><div class="sem" id="sem"></div></div>
 <div class="card"><h2>Дарааллын урт (цаг хугацаанаар) — босоо шугам нь одоогийн байрлал</h2>
@@ -175,31 +175,36 @@ let D=null,idx=0,vt=0,playing=false,raf=null,lastTs=0;
 const MSG={ARRIVE:s=>`Оюутан ${s} ирлээ`,SIT:s=>`Оюутан ${s} сандал дээр суув`,FULL:s=>`Оюутан ${s}: сандал дүүрэн → буцав`,TA_SLEEP:()=>'TA унтлаа',TA_WAKE:()=>'TA сэрлээ',
   HELP_START:s=>`TA оюутан ${s}-д тусалж эхэллээ`,HELP_END:s=>`TA оюутан ${s}-д тусалж дууслаа`,END:()=>'Дууслаа'};
 const err=m=>{$('err').textContent=m};
-function readParams(){const sp=[['chairs',1,10,1],['n',1,20,1],['prog',0.1,30,0],['help',0.1,15,0],['rounds',1,20,1],['seed',0,1e6,1]],v={};
+const LBL={chairs:'Сандал',n:'Оюутан',prog:'Ирэх давтамж',help:'Тусламжийн хугацаа',rounds:'Мөчлөг',seed:'Seed'};
+function readParams(){const sp=[['chairs',1,10,1],['n',1,20,1],['prog',0.01,60,0],['help',0.01,60,0],['rounds',1,100,1],['seed',0,1e6,1]],v={};
   for(const[k,lo,hi,int]of sp){const raw=$(k).value,x=Number(raw);
-    if(raw===''||!isFinite(x)){err(`"${k}" талбарт тоо оруулна уу.`);return null}
-    if(x<lo||x>hi){err(`"${k}" нь ${lo}–${hi} хооронд байх ёстой (одоо: ${x}).`);return null}
-    if(int&&!Number.isInteger(x)){err(`"${k}" бүхэл тоо байх ёстой.`);return null}v[k]=x}
+    if(raw===''||!isFinite(x)){err(`«${LBL[k]}» талбарт тоо оруулна уу.`);return null}
+    if(x<lo||x>hi){err(`«${LBL[k]}» нь ${lo}–${hi} хооронд байх ёстой (одоо: ${x}).`);return null}
+    if(int&&!Number.isInteger(x)){err(`«${LBL[k]}» бүхэл тоо байх ёстой.`);return null}v[k]=x}
   err('');return{chairs:v.chairs,students:v.n,prog:v.prog,help:v.help,rounds:v.rounds,seed:v.seed}}
 function stop(){playing=false;if(raf)cancelAnimationFrame(raf);raf=null}
 function load(d,name){stop();D=d;idx=0;vt=0;$('sl').max=d.ev.length;
-  const e=validate(d.meta,d.ev);
-  $('chk').innerHTML=e.length?`<span class="bad">✖ Лог шалгалт (${name}): ${e.length} зөрчил — ${e.slice(0,3).join('; ')}</span>`
-    :`<span class="ok">✔ Лог шалгалт (${name}): ${d.ev.length} event, бүх invariant (FIFO, сандлын хязгаар, TA төлөв) биелсэн</span>`;
+  const e=validate(d.meta,d.ev),m=d.meta;
+  for(const[k,id]of[['chairs','chairs'],['students','n'],['prog','prog'],['help','help'],['rounds','rounds'],['seed','seed']])if(m[k]!==undefined)$(id).value=m[k];
+  const nm=m.mutex===0?'<div class="bad">⚠ Энэ log <code>--no-mutex</code> горимоор (mutex=0) гарсан: race condition-ийг зориуд үзүүлэх туршилт тул зөрчил гарах нь хүлээгдсэн үр дүн.</div>':'';
+  $('chk').innerHTML=nm+(e.length?`<span class="bad">✖ Лог шалгалт (${name}): ${e.length} зөрчил — ${e.slice(0,3).join('; ')}</span>`
+    :`<span class="ok">✔ Лог шалгалт (${name}): ${d.ev.length} event, бүх invariant (FIFO, сандлын хязгаар, TA төлөв) биелсэн</span>`);
   chart();draw()}
-function chart(){const{meta,ev}=D,T=ev[ev.length-1].t||1,c=meta.chairs;let d='M0 82',py=82;
-  for(const x of ev){const X=(x.t/T*600).toFixed(1),Y=(82-x.q/c*72).toFixed(1);d+=` L${X} ${py} L${X} ${Y}`;py=Y}
-  $('qc').innerHTML=`<line x1="0" x2="600" y1="10" y2="10" stroke="var(--away)" stroke-dasharray="4 4"/><line x1="0" x2="600" y1="82" y2="82" stroke="var(--bd)"/><path d="${d}" fill="none" stroke="var(--wait)" stroke-width="2"/><line id="cur" x1="0" x2="0" y1="0" y2="90" stroke="var(--tx)"/>`;
-  $('qcl').textContent=`Тасархай шугам = бүх сандал дүүрсэн түвшин (${c}). Хамгийн их дараалал: ${Math.max(...ev.map(x=>x.q))}`}
+function chart(){const{meta,ev}=D,T=ev[ev.length-1].t||1,c=meta.chairs,mx=Math.max(...ev.map(x=>x.q)),top=Math.max(c,mx);let d='M0 82',py=82;
+  /* Y тэнхлэг max(сандал, хамгийн их дараалал)-аар: race-д дараалал сандлаас хэтэрвэл график тасрахгүй */
+  const yc=(82-c/top*72).toFixed(1);
+  for(const x of ev){const X=(x.t/T*600).toFixed(1),Y=(82-x.q/top*72).toFixed(1);d+=` L${X} ${py} L${X} ${Y}`;py=Y}
+  $('qc').innerHTML=(mx>c?`<rect x="0" y="0" width="600" height="${yc}" fill="var(--away)" opacity=".12"/>`:'')+`<line x1="0" x2="600" y1="${yc}" y2="${yc}" stroke="var(--away)" stroke-dasharray="4 4"/><line x1="0" x2="600" y1="82" y2="82" stroke="var(--bd)"/><path d="${d}" fill="none" stroke="var(--wait)" stroke-width="2"/><line id="cur" x1="0" x2="0" y1="0" y2="90" stroke="var(--tx)"/>`;
+  $('qcl').textContent=`Тасархай шугам = бүх сандал дүүрсэн түвшин (${c}). Хамгийн их дараалал: ${mx}`+(mx>c?` — сандлаас ${mx-c}-оор хэтэрсэн (улаан бүс)!`:'')}
 function draw(){if(!D)return;const{meta,ev}=D,s=stateAt(ev,idx),c=meta.chairs,n=meta.students,last=idx?ev[idx-1]:null;
-  const col={sleep:'var(--sleep)',help:'var(--help)',idle:'var(--prog)'};
+  const col={sleep:'var(--sleep)',help:'var(--help)',idle:'var(--idle)'};
   $('ta').style.background=col[s.ta];$('ta').className='ta '+s.ta;$('taI').textContent=s.ta==='sleep'?'💤':s.ta==='help'?'🧑‍🏫':'🙂';
   $('taT').textContent=s.ta==='sleep'?'Унтаж байна':s.ta==='help'?`Оюутан ${s.cur}-д тусалж байна`:'Сэрүүн, хүлээж байна';
-  let h='';for(let i=0;i<c;i++){const x=s.q[i];h+=`<div class="ch">${x?`<div class="st" style="background:var(--wait)">${x}</div>`:'хоосон'}</div>`}
+  let h='';for(let i=0;i<Math.max(c,s.q.length);i++){const x=s.q[i],ov=i>=c;h+=`<div class="ch"${ov?' style="border-color:var(--away)" title="Сандлаас хэтэрсэн (race)"':''}>${x?`<div class="st" style="background:${ov?'var(--away)':'var(--wait)'}">${x}</div>`:'хоосон'}</div>`}
   $('chairsV').innerHTML=h;
   let p='';for(let i=1;i<=n;i++)if(!s.stu[i]||s.stu[i]==='prog'){const away=last&&last.e==='FULL'&&last.s===i;p+=`<div class="st" style="background:${away?'var(--away)':'var(--prog)'}">${i}</div>`}
   $('progV').innerHTML=p||'<span class="h">—</span>';
-  $('sem').innerHTML=`<div>students (хүлээж буй) = ${s.q.length}</div><div>chairs free = ${c-s.q.length}/${c}</div><div>туслагдсан = ${s.helped}</div><div>буцсан = ${s.full}</div><div>TA унтсан = ${s.sleeps}×</div><div>дундаж хүлээлт = ${s.avgw.toFixed(2)}с</div>`;
+  $('sem').innerHTML=`<div>students (хүлээж буй) = ${s.q.length}</div><div>chairs free = ${Math.max(0,c-s.q.length)}/${c}${s.q.length>c?` <b class="bad">(${s.q.length-c} хэтэрсэн!)</b>`:''}</div><div>туслагдсан = ${s.helped}</div><div>буцсан = ${s.full}</div><div>TA унтсан = ${s.sleeps}×</div><div>дундаж хүлээлт = ${s.avgw.toFixed(2)}с</div>`;
   const t=last?last.t:0;$('clock').textContent=`t = ${(t/1000).toFixed(2)} с · event ${idx}/${ev.length}`;$('sl').value=idx;const cu=$('cur');if(cu){const x=(t/(ev[ev.length-1].t||1)*600).toFixed(1);cu.setAttribute('x1',x);cu.setAttribute('x2',x)}
   let l='';for(let i=idx-1;i>=Math.max(0,idx-16);i--){const x=ev[i];l+=`<div>[${(x.t/1000).toFixed(2)}с] ${MSG[x.e](x.s)} · дараалал ${x.q}/${c}</div>`}
   $('log').innerHTML=l}
