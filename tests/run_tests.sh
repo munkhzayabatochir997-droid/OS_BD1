@@ -32,7 +32,7 @@ echo "== Race condition (--no-mutex)"
 detected=0; tries=0
 for k in 1 2 3 4 5 6 7 8; do
   tries=$k
-  tmo 60 $BIN -c 1 -n 8 -p 0.05 -d 0.05 -r 3 -s $k --no-mutex -q -o "$T/nm.csv" >/dev/null 2>&1; rc=$?
+  tmo 60 $BIN -c 1 -n 10 -p 0.01 -d 0.01 -r 5 -s $k --no-mutex -q -o "$T/nm.csv" >/dev/null 2>&1; rc=$?
   if [ $rc -eq 3 ] || ! build/check_log "$T/nm.csv" >"$T/nm.out" 2>&1; then detected=1; break; fi
 done
 [ $detected -eq 1 ] && ok "N1 --no-mutex: race илэрсэн ($tries дахь оролдлого; $(sed -n '2p' "$T/nm.out" 2>/dev/null | sed 's/^ *//'))" || no "N1 --no-mutex: 8 оролдлогод race илрээгүй"

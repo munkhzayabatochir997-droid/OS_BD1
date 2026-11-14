@@ -5,7 +5,7 @@
  *
  * Build: gcc -Wall -Wextra -O2 -pthread -o build/sleeping_ta src/sleeping_ta.c
  * Run:   ./build/sleeping_ta -c 3 -n 5 -p 1 -d 0.5 -r 3 -s 1 -o run.csv
- *        ./build/sleeping_ta -c 1 -n 8 -p 0.05 -d 0.05 -r 3 --no-mutex -o race.csv   (race condition үзүүлэх)
+ *        ./build/sleeping_ta -c 1 -n 10 -p 0.01 -d 0.01 -r 5 -s 1 --no-mutex -o race.csv   (race condition үзүүлэх)
  *
  * Платформ: Linux (sem_init) ба macOS (sem_init дэмжигддэггүй тул нэртэй sem_open).
  */
@@ -111,6 +111,14 @@ static void ev(const char *name, int s, int q) {
     pthread_mutex_unlock(&lm);
 }
 
+/* sem_wait: дохиогоор (EINTR) тасарвал дахин хүлээнэ, өөр алдаа гарвал програмыг зогсооно. */
+static void sem_wait_chk(sem_t *s) {
+    while (sem_wait(s) != 0) {
+        if (errno == EINTR) continue;
+        perror("sem_wait"); exit(1);
+    }
+}
+
 static void *ta_thread(void *arg) {
     (void)arg;
     for (;;) {
@@ -119,7 +127,7 @@ static void *ta_thread(void *arg) {
         if (qcount == 0 && !ta_done) { ev("TA_SLEEP", 0, 0); slept = 1; n_sleeps++; }
         M_UNLOCK();
 
-        sem_wait(students_sem);                 /* унтах / сэрэх цэг */
+        sem_wait_chk(students_sem);             /* унтах / сэрэх цэг */
 
         M_LOCK();
         if (qcount == 0 && ta_done) { M_UNLOCK(); break; }
@@ -149,8 +157,8 @@ static void *student_thread(void *arg) {
             ev("SIT", id, qcount);
             M_UNLOCK();
             sem_post(students_sem);             /* TA-г сэрээх / дарааллыг мэдэгдэх */
-            sem_wait(call_sem[id]);             /* дуудагдахыг хүлээх */
-            sem_wait(fin_sem[id]);              /* тусламж дуустал хүлээх */
+            sem_wait_chk(call_sem[id]);         /* дуудагдахыг хүлээх */
+            sem_wait_chk(fin_sem[id]);          /* тусламж дуустал хүлээх */
         } else {
             ev("FULL", id, qcount);
             n_turned++;
@@ -222,8 +230,12 @@ int main(int argc, char **argv) {
     clock_gettime(CLOCK_MONOTONIC, &t0);
 
     pthread_t ta, st[MAXN + 1];
-    pthread_create(&ta, NULL, ta_thread, NULL);
-    for (int i = 1; i <= nstud; i++) pthread_create(&st[i], NULL, student_thread, (void *)(intptr_t)i);
+    int rc = pthread_create(&ta, NULL, ta_thread, NULL);
+    if (rc) { fprintf(stderr, "pthread_create (TA): %s\n", strerror(rc)); return 1; }
+    for (int i = 1; i <= nstud; i++) {
+        rc = pthread_create(&st[i], NULL, student_thread, (void *)(intptr_t)i);
+        if (rc) { fprintf(stderr, "pthread_create (оюутан %d): %s\n", i, strerror(rc)); return 1; }
+    }
     for (int i = 1; i <= nstud; i++) pthread_join(st[i], NULL);
 
     M_LOCK(); ta_done = 1; M_UNLOCK();
