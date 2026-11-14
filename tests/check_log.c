@@ -1,7 +1,10 @@
 /* Event log-ийн бие даасан шалгагч (invariant checker) — C хэлээр.
  * Build: gcc -O2 -o build/check_log tests/check_log.c
  * Run:   build/check_log run.csv [--expect-full | --expect-no-full]
- * Exit: 0 = PASS, 1 = FAIL, 2 = файл/хэрэглээний алдаа */
+ * Exit: 0 = PASS, 1 = FAIL, 2 = файл/хэрэглээний алдаа
+ *
+ * Засвар (peer review-ийн дагуу): TA_SLEEP/TA_WAKE/FULL/END-ийн student ба queue_len талбар,
+ * студентийн дугаарын муж (1..students), тусламжийн хугацааны шалгалтыг чангалав. */
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,7 +67,11 @@ int main(int argc, char **argv) {
     double last = -1, hstart = 0;
     for (int i = 0; i < nev; i++) {
         Ev *x = &ev[i]; int s = x->s;
+        int is_student_ev = !strcmp(x->e, "ARRIVE") || !strcmp(x->e, "SIT") || !strcmp(x->e, "FULL")
+                         || !strcmp(x->e, "HELP_START") || !strcmp(x->e, "HELP_END");
         if (s < 0 || s >= MAXS) { bad(i, "студентийн дугаар буруу"); continue; }
+        if (is_student_ev && (s < 1 || s > (int)nstud)) { bad(i, "студентийн дугаар %d муж (1..%d)-аас гадуур", s, (int)nstud); continue; }
+        if (!is_student_ev && s != 0) bad(i, "student талбар 0 байх ёстой (өгсөн: %d)", s);
         if (x->t < last) bad(i, "цаг буурсан");
         last = x->t;
         int sv = st[s];
@@ -82,12 +89,15 @@ int main(int argc, char **argv) {
         } else if (!strcmp(x->e, "FULL")) {
             if (sv != 1) bad(i, "ARRIVE-гүй буцсан");
             if (qn != chairs) bad(i, "сандал дүүрэн биш (%d/%d) атал буцсан", qn, (int)chairs);
+            if (x->q != qn) bad(i, "queue_len=%d, бодит=%d", x->q, qn);
             full++; st[s] = 0;
         } else if (!strcmp(x->e, "TA_SLEEP")) {
             if (ta != 0 || qn) bad(i, "дараалал хоосон биш/завгүй үед унтсан");
+            if (x->q != 0) bad(i, "TA_SLEEP-д queue_len=0 байх ёстой (өгсөн: %d)", x->q);
             ta = 1; sleeps++;
         } else if (!strcmp(x->e, "TA_WAKE")) {
             if (ta != 1 || !qn) bad(i, "унтаагүй эсвэл дараалал хоосон үед сэрсэн");
+            if (x->q != qn) bad(i, "queue_len=%d, бодит=%d", x->q, qn);
             ta = 0;
         } else if (!strcmp(x->e, "HELP_START")) {
             if (ta != 0) bad(i, "TA төлөв %d үед тусалж эхэлсэн", ta);
@@ -98,12 +108,14 @@ int main(int argc, char **argv) {
             st[s] = 3; ta = 2; cur = s; hstart = x->t;
         } else if (!strcmp(x->e, "HELP_END")) {
             if (ta != 2 || cur != s) bad(i, "тохирох HELP_START байхгүй");
-            if (x->t - hstart < helpv * 1000 * 0.9) bad(i, "тусламж хэт богино");
+            /* HELP_START-ийн цаг нь sleep-ээс өмнө авагдсан тул тусламж help-ээс богино байж болохгүй */
+            if (x->t - hstart < helpv * 1000 * 0.99) bad(i, "тусламж хэт богино");
             if (x->q != qn) bad(i, "queue_len=%d, бодит=%d", x->q, qn);
             st[s] = 0; ta = 0; cur = -1; helped++;
         } else if (!strcmp(x->e, "END")) {
             if (i != nev - 1) bad(i, "END сүүлийн event биш");
             if (qn || ta == 2) bad(i, "END үед дараалал/TA дуусаагүй");
+            if (x->q != 0) bad(i, "END-д queue_len=0 байх ёстой (өгсөн: %d)", x->q);
         } else bad(i, "үл мэдэгдэх event");
         if (qn > chairs) bad(i, "дараалал сандлаас их");
     }
