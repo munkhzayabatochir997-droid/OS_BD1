@@ -1,0 +1,13 @@
+LOG                                      OLD      NEW     
+basic_3chairs_5students.csv              PASS     PASS    
+debian_3chairs_5students_seed1.csv       PASS     PASS    
+overload_1chair_8students.csv            PASS     PASS    
+relaxed_10chairs_3students.csv           PASS     PASS    
+bad_end_queue.csv                        PASS     FAIL    
+bad_student_range.csv                    FAIL     FAIL    
+bad_ta_sleep_student.csv                 PASS     FAIL    
+nomutex_1.csv                            FAIL     FAIL    
+nomutex_2.csv                            FAIL     FAIL    
+nomutex_3.csv                            FAIL     FAIL    
+nomutex_4.csv                            FAIL     FAIL    
+nomutex_5.csv                            FAIL     FAIL    

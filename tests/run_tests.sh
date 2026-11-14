@@ -32,10 +32,13 @@ echo "== Race condition (--no-mutex)"
 detected=0; tries=0
 for k in 1 2 3 4 5 6 7 8; do
   tries=$k
-  tmo 60 $BIN -c 1 -n 8 -p 0.05 -d 0.05 -r 3 -s $k --no-mutex -q -o "$T/nm.csv" >/dev/null 2>&1; rc=$?
+  tmo 60 $BIN -c 1 -n 10 -p 0.01 -d 0.01 -r 5 -s $k --no-mutex -q -o "$T/nm.csv" >/dev/null 2>&1; rc=$?
   if [ $rc -eq 3 ] || ! build/check_log "$T/nm.csv" >"$T/nm.out" 2>&1; then detected=1; break; fi
 done
 [ $detected -eq 1 ] && ok "N1 --no-mutex: race илэрсэн ($tries дахь оролдлого; $(sed -n '2p' "$T/nm.out" 2>/dev/null | sed 's/^ *//'))" || no "N1 --no-mutex: 8 оролдлогод race илрээгүй"
 tmo 60 $BIN -c 3 -n 5 -p 0.3 -d 0.2 -r 3 -s 1 --no-mutex -q -o "$T/nm2.csv" >/dev/null 2>&1; grep -q 'mutex=0' "$T/nm2.csv" && ok "N2 log-ийн header-т mutex=0 бичигдсэн" || no "N2 header mutex=0"
 $BIN --no-mutex --bogus >/dev/null 2>"$T/e"; [ $? -eq 2 ] && [ -s "$T/e" ] && ok "E14 үл мэдэгдэх урт сонголт (rc=2)" || no "E14 үл мэдэгдэх урт сонголт"
+echo "== БД2: муу log fixture → check_log FAIL (rc=1) байх ёстой"
+for f in tests/fixtures/bad_*.csv; do build/check_log "$f" >/dev/null; rc=$?
+  [ $rc -eq 1 ] && ok "F $(basename "$f") илэрсэн" || no "F $(basename "$f") (rc=$rc)"; done
 rm -rf "$T"; echo "== Дүн: $pass амжилттай, $fail бүтэлгүйтсэн"; [ $fail -eq 0 ]

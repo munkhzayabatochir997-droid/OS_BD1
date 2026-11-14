@@ -48,4 +48,11 @@ t('END устгавал илрэнэ', () => { const d = base(); d.ev.pop(); ass
 t('Parser: header дутуу → алдаа', () => assert.throws(() => parseLog('time_ms,event,student,queue_len\n1,SIT,1,1\n')));
 t('Parser: буруу event → алдаа', () => assert.throws(() => parseLog('# chairs=1 students=1 help=1 rounds=1\n1,FOO,1,1\n')));
 t('Parser: хоосон log → алдаа', () => assert.throws(() => parseLog('# chairs=1 students=1 help=1 rounds=1\n')));
+console.log('== БД2: муу log fixture (check_log-той ижил дүрэм)');
+const fxDir = path.join(__dirname, 'fixtures');
+for (const [f, re] of [['bad_end_queue.csv', /END-д queue_len=0/], ['bad_full_queue.csv', /FULL: queue_len/],
+    ['bad_student_range.csv', /муж \(1\.\.5\)/], ['bad_ta_sleep_student.csv', /TA_SLEEP: student талбар 0/],
+    ['bad_ta_wake_student.csv', /TA_WAKE: student талбар 0/]])
+  t(`${f} → илрэнэ`, () => { const d = parseLog(fs.readFileSync(path.join(fxDir, f), 'utf8'));
+    const e = validate(d.meta, d.ev); assert(e.some(m => re.test(m)), 'хүлээгдсэн алдаа алга: ' + e.join(' | ')); });
 console.log(`== Дүн: ${pass} амжилттай, ${fail} бүтэлгүйтсэн`); process.exit(fail ? 1 : 0);

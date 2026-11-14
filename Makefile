@@ -26,7 +26,10 @@ tsan: $(CHK)
 test-ui:
 	node tests/test_ui_model.js
 
+sweep: all
+	bash tests/sweep.sh
+
 clean:
 	rm -rf build
 
-.PHONY: all test stress tsan test-ui clean
+.PHONY: all test stress tsan test-ui sweep clean

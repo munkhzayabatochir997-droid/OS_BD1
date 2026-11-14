@@ -1,0 +1,2 @@
+bash tests/stress.sh 30
+== Stress: 30 ажиллуулалт, 0 алдаатай
