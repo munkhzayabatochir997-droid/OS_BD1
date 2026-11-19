@@ -11,7 +11,27 @@
 
 **Зорилго.** Нэг TA, хязгаарлагдмал хүлээх сандал, олон оюутны thread-ийг mutex + semaphore-оор синхрончилж (race condition, deadlock, lost wake-up үгүй), хэрэгжилтийг бодит event log-оор animation хэлбэрээр харуулж турших.
 
-**БД2.** Шүүмжийн дагуу сайжруулалт хийж, дахин туршсан. Дэлгэрэнгүйг `docs/` доторх тайлангаас үзнэ.
+**Final release:** [v2.0](https://github.com/munkhzayabatochir997-droid/OS_BD1/releases/tag/v2.0) (БД2). БД1-ийн хувилбар: [v1.0](https://github.com/munkhzayabatochir997-droid/OS_BD1/releases/tag/v1.0).
+
+## БД2: материал ба сайжруулалт
+
+| Материал | Файл |
+|---|---|
+| Постер | [`docs/V-1-10_Poster.pdf`](docs/V-1-10_Poster.pdf) |
+| Final Report | [`docs/V-1-10_Final_Report.pdf`](docs/V-1-10_Final_Report.pdf) |
+| Manual | [`docs/V-1-10_Manual.pdf`](docs/V-1-10_Manual.pdf), [`docs/Manual.md`](docs/Manual.md) |
+
+Шүүмжийн дагуу хийсэн гол сайжруулалт (дэлгэрэнгүй: Final Report, 4-р хэсэг):
+1. **Шалгагч чангарсан (R1–R3).** C (`check_log`) ба UI (`validate()`) шалгагч ижил дүрэмтэй болж, зориуд эвдсэн 5 log-ийг 5/5 илрүүлдэг. Тест 22-оос 27, UI тест 19-өөс 24 болсон.
+2. **Mutex-гүй дүрслэл (R4, R6–R8).** Хэтэрсэн оюутан улаан хүрээтэй сандалд, график тасрахгүй; log ачаалахад талбар header-ээс бөглөгдөж, `mutex=0` анхааруулга гарна.
+3. **Найдвартай race команд (R5).** 1–20 seed-ийн 20/20-д race илэрдэг.
+4. **Гүйцэтгэлийн туршилт (R11).** `make sweep`: сандлын тоо ба буцалт, дундаж хүлээлтийн хамаарал.
+
+## Дэлгэцийн зураг
+
+| Mutex-тэй: 3/3 сандал дүүрэн, TA 5-р оюутанд тусалж байна | Mutex-гүй: 1 сандалтай атал 3 оюутан суусан |
+|---|---|
+| ![Mutex-тэй ажиллагаа](docs/images/ui_02_queue_full.png) | ![Mutex-гүй горим](docs/images/ui_06_no_mutex.png) |
 
 ## Яаж ажилладаг вэ
 
@@ -29,7 +49,7 @@ UI нь C програмын **бодит** гаралтыг (`-o run.csv`) да
 git clone https://github.com/munkhzayabatochir997-droid/OS_BD1.git && cd OS_BD1
 make                                                       # build/sleeping_ta
 ./build/sleeping_ta -c 3 -n 5 -p 1 -d 0.5 -r 3 -s 1 -o run.csv
-# src/sleeping_ta.html-г browser-т нээгээд "C-ийн log" талбараас run.csv-г сонгож ▶ Play дарна
+# src/sleeping_ta.html-г browser-т нээгээд "C-ийн log" талбараас run.csv-г сонгож Play дарна
 make test        # C шалгагч + үндсэн, захын, буруу log-ийн тест (27 тест)
 make test-ui     # UI-ийн parser, шалгагч, Demo, төлөв сэргээх тест (24 тест)
 make stress      # 30 янзын тохиргооны stress тест
@@ -37,7 +57,9 @@ make tsan        # ThreadSanitizer (data race илрүүлэгч)
 make sweep       # сандал 1–10: буцалт ба дундаж хүлээлтийн туршилт
 ```
 
-Аргумент: `-c` сандал 1–10 · `-n` оюутан 1–20 · `-p` ирэх давтамж: оюутан дахин ирэх дундаж интервал (0.01–60 с) · `-d` тусламжийн хугацаа (0.01–60 с) · `-r` мөчлөгийн тоо (1–100) · `-s` seed · `-o` log · `-q` чимээгүй · `--no-mutex` mutex-гүй ажиллуулж race condition-ийг зориуд үзүүлнэ. Жишээ log-ууд: `examples/`.
+**Туршсан орчин (dependency version):** Debian 13 x86_64, gcc 14.2.0, GNU Make 4.4.1, Node.js 20.19 (зөвхөн `make test-ui`), Chrome. Гадны сан шаардлагагүй (libc, pthread). CI: Ubuntu ба macOS.
+
+Аргумент: `-c` сандал 1–10 · `-n` оюутан 1–20 · `-p` ирэх давтамж: оюутан дахин ирэх дундаж интервал (0.01–60 с) · `-d` тусламжийн хугацаа (0.01–60 с) · `-r` мөчлөгийн тоо (1–100) · `-s` seed · `-o` log · `-q` чимээгүй · `--no-mutex` mutex-гүй ажиллуулж race condition-ийг зориуд үзүүлнэ. Туршилтын өгөгдөл: `examples/` (C-ийн бодит log-ууд, `race_demo.csv` орно), `tests/fixtures/` (зориуд эвдсэн 5 log), `docs/results_bd2/` (туршилтын гаралт).
 
 ## Race condition үзүүлэх (`--no-mutex`)
 
@@ -48,7 +70,7 @@ make sweep       # сандал 1–10: буцалт ба дундаж хүлэ�
 ./build/check_log race.csv        # FAIL: SIT: сандлаас хэтэрсэн
 ```
 
-Анхаарах: энэ горимд "шалгах → суух" хоорондын цонхыг 1 мс-ээр өргөсгөдөг (үгүйгээр race маш ховор гарна). Race магадлалтай үзэгдэл боловч дээрх команд 1–20 seed-ийн 20/20-д нь race илрүүлсэн. Дараалал эвдэрч оюутан гацвал 3 кодтойгоор watchdog гаргана. `make test` нь 8 удаа хүртэл оролддог. UI-д `race.csv`-г ачаалбал хэтэрсэн оюутнууд улаан сандалд харагдаж, `mutex=0` анхааруулга гарна.
+Анхаарах: энэ горимд "шалгах" ба "суух" хоорондын цонхыг 1 мс-ээр өргөсгөдөг (үгүйгээр race маш ховор гарна). Race магадлалтай үзэгдэл боловч дээрх команд 1–20 seed-ийн 20/20-д нь race илрүүлсэн. Дараалал эвдэрч оюутан гацвал 3 кодтойгоор watchdog гаргана. `make test` нь 8 удаа хүртэл оролддог. UI-д `race.csv`-г ачаалбал хэтэрсэн оюутнууд улаан сандалд харагдаж, `mutex=0` анхааруулга гарна.
 
 ## Шалгагч ба тест
 
@@ -88,10 +110,11 @@ src/        sleeping_ta.c, sleeping_ta.html
 tests/      run_tests.sh, check_log.c, test_ui_model.js, test_cases.md,
             sweep.sh, fixtures/ (5 буруу log)
 examples/   бодит log-ууд (race_demo.csv орно)
-docs/       Manual.md, Report (БД1, БД2), results_bd2/ (өмнө/дараах зураг, туршилтын гаралт)
+docs/       V-1-10_Poster.pdf, V-1-10_Final_Report.pdf, V-1-10_Manual.pdf, Manual.md,
+            images/ (UI-ийн зураг), results_bd2/ (туршилтын гаралт), 10_BD1_Report.pdf (БД1)
 .github/    workflows/ci.yml
 ```
 
 ## AI ашигласан тухай
 
-Тест, баримтын эхний хувилбарыг Claude (Anthropic)-ийн тусламжтай бэлтгэсэн. БД2-ийн тайлангийн LaTeX засварт мөн Claude ашигласан.
+Тест, баримтын эхний хувилбарыг Claude (Anthropic)-ийн тусламжтай бэлтгэсэн. БД2-ийн тайлан, Manual-ын LaTeX засварлахад Claude ашигласан.
