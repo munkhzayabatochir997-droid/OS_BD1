@@ -23,7 +23,9 @@ t('1 сандал, олон оюутан → FULL гарна', () => {
   assert(d.ev.some(x => x.e === 'FULL')); });
 
 const exDir = path.join(__dirname, '../examples');
-for (const f of fs.existsSync(exDir) ? fs.readdirSync(exDir).filter(x => x.endsWith('.csv')) : [])
+/* mutex=0 (race_demo.csv) log-д зөрчил гарах нь хүлээгдсэн үр дүн тул энд алгасна */
+const isNoMutex = f => /^#.*\bmutex=0\b/.test(fs.readFileSync(path.join(exDir, f), 'utf8').split('\n')[0]);
+for (const f of fs.existsSync(exDir) ? fs.readdirSync(exDir).filter(x => x.endsWith('.csv') && !isNoMutex(x)) : [])
   t(`C-ийн бодит log ${f} → parse + validate`, () => {
     const d = parseLog(fs.readFileSync(path.join(exDir, f), 'utf8'));
     assert.deepStrictEqual(validate(d.meta, d.ev), []); });
