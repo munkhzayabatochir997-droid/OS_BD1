@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="mn"><head><meta charset="utf-8">
+<html lang="mn" data-theme="light"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sleeping Teaching Assistant — Queue animation</title>
 <style>
@@ -91,7 +91,7 @@ button:active{transform:translateY(1px)}
 <p class="h">Хүлээх сандлууд (FIFO: зүүн талаас эхэлж дуудагдана)</p><div class="chairs" id="chairsV"></div>
 <p class="h">Програмчилж байгаа оюутнууд</p><div class="prog" id="progV"></div>
 </div></div>
-<div class="lg"><span><i style="background:var(--sleep)"></i>TA унтаж байна</span><span><i style="background:var(--idle)"></i>TA сэрүүн, оюутан хүлээж байна</span><span><i style="background:var(--help)"></i>Тусламж</span><span><i style="background:var(--wait)"></i>Сандал дээр хүлээж байна</span><span><i style="background:var(--prog)"></i>Програмчилж байна</span><span><i style="background:var(--away)"></i>Сандал дүүрсэн тул буцсан (одоогийн event)</span></div>
+<div class="lg"><span><i style="background:var(--sleep)"></i>TA унтаж байна</span><span><i style="background:var(--idle)"></i>TA сэрүүн, оюутан хүлээж байна</span><span><i style="background:var(--help)"></i>Тусламж</span><span><i style="background:var(--wait)"></i>Сандал дээр хүлээж байна</span><span><i style="background:var(--prog)"></i>Програмчилж байна</span><span><i style="background:var(--away)"></i>Сандал дүүрсэн тул буцсан (одоогийн event)</span><span><i style="border-radius:3px;box-shadow:inset 0 0 0 2px var(--away)"></i>Сандлаас хэтэрсэн (зөвхөн mutex-гүй)</span></div>
 </div>
 <div class="card"><div class="sem" id="sem"></div></div>
 <div class="card"><h2>Дарааллын урт (цаг хугацаанаар) — босоо шугам нь одоогийн байрлал</h2>
@@ -213,6 +213,7 @@ function tickf(ts){if(!playing)return;vt+=(ts-lastTs)*Number($('spd').value||1);
   if(idx>=D.ev.length){stop();return}raf=requestAnimationFrame(tickf)}
 function setIdx(i){stop();idx=Math.max(0,Math.min(D.ev.length,i));vt=idx?D.ev[idx-1].t:0;draw()}
 $('gen').onclick=()=>{const p=readParams();if(p)load(genDemo(p),'Demo')};
+$('file').onclick=e=>{e.target.value=''};
 $('file').onchange=e=>{const f=e.target.files[0];if(!f)return;
   if(f.size>5e6){err('Файл хэт том (5MB-аас бага байх ёстой).');return}
   const r=new FileReader();r.onload=()=>{try{load(parseLog(r.result),f.name);err('')}catch(x){err('Log уншиж чадсангүй: '+x.message)}};r.readAsText(f)};
@@ -222,7 +223,7 @@ $('pause').onclick=stop;$('reset').onclick=()=>D&&setIdx(0);
 $('fwd').onclick=()=>D&&setIdx(idx+1);$('back').onclick=()=>D&&setIdx(idx-1);
 $('sl').oninput=e=>D&&setIdx(+e.target.value);
 $('dl').onclick=()=>{if(!D)return;const m=D.meta;
-  const t=`# chairs=${m.chairs} students=${m.students} prog=${m.prog} help=${m.help} rounds=${m.rounds} seed=${m.seed}\ntime_ms,event,student,queue_len\n`+D.ev.map(x=>`${x.t},${x.e},${x.s},${x.q}`).join('\n')+'\n';
+  const t=`# chairs=${m.chairs} students=${m.students} prog=${m.prog} help=${m.help} rounds=${m.rounds} seed=${m.seed}${m.mutex!==undefined?` mutex=${m.mutex}`:''}\ntime_ms,event,student,queue_len\n`+D.ev.map(x=>`${x.t},${x.e},${x.s},${x.q}`).join('\n')+'\n';
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='demo_log.csv';a.click()};
 load(genDemo({chairs:3,students:6,prog:2,help:1,rounds:3,seed:1}),'Demo');
 }
