@@ -1,8 +1,12 @@
-**Гарчиг:** V-1-10 – The Sleeping Teaching Assistant
+**Гарчиг:** V-1-10 – The Sleeping Teaching Assistant • Final
 
-Код: V-1-10
-Төсөл: The Sleeping Teaching Assistant
-Товч үр дүн: Нэг TA, хязгаарлагдмал сандал, олон оюутны thread-ийг C (Pthreads, semaphore, mutex)-ээр хэрэгжүүлж, thread-үүдийн бодит event log-оор queue animation (алхамчилж, slider-аар) харуулдаг UI хийсэн. 22 автомат тест, 30 stress ажиллуулалт, ThreadSanitizer-ээр зөв ажиллагааг шалгасан; буруу оролтод ойлгомжтой мэдээлэл өгнө.
-GitHub: https://github.com/munkhzayabatochir997-droid/OS_BD1
-Хавсралт: Report.pdf, Manual.pdf
-Туршиж үзэх: README-ийн Quick Start хэсэг. (Windows: WSL, Manual §3; C-гүйгээр examples/*.csv-г UI-д ачаалж болно.)
+Шүүмжийн мөрөөр хийсэн гол сайжруулалт:
+1. C ба UI шалгагчийг ижил дүрэмтэй болгож, зориуд эвдсэн 5 log-ийг 5/5 илрүүлдэг болгосон (тест 22-оос 27, UI тест 19-өөс 24).
+2. Mutex-гүй горимд хэтэрсэн оюутан улаан сандалд харагдаж, график тасрахгүй болсон; log ачаалахад талбар автоматаар бөглөгдөнө.
+3. Race үзүүлэх командыг сайжруулж, 20 seed-ийн 20-д race илэрдэг болгосон.
+4. Сандлын тоо ба буцалт, хүлээлтийн хамаарлыг хэмжих туршилт (`make sweep`) нэмсэн: сандал 1-ээс 7 болоход буцалт 44%-иас 0%, хүлээлт 53 мс-ээс 382 мс.
+
+Үндсэн материал: V-1-10_Poster.pdf
+Нэмэлт материал: V-1-10_Final_Report.pdf, V-1-10_Manual.pdf
+GitHub final release: https://github.com/munkhzayabatochir997-droid/OS_BD1/releases/tag/v2.0
+Туршиж үзэх: README-ийн Quick Start хэсэг, Manual-ын 1.3 (Суулгах ба нээх алхам). C-гүйгээр `src/sleeping_ta.html`-г нээж `examples/*.csv`-г ачаалж болно. Windows: WSL (Manual.md §3).
