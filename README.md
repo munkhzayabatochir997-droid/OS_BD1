@@ -117,4 +117,4 @@ docs/       V-1-10_Poster.pdf, V-1-10_Final_Report.pdf, V-1-10_Manual.pdf, Manua
 
 ## AI ашигласан тухай
 
-Тест, баримтын эхний хувилбарыг Claude (Anthropic)-ийн тусламжтай бэлтгэсэн. БД2-ийн тайлан, Manual-ын LaTeX засварлахад Claude ашигласан.
+Тест, баримтын эхний хувилбарыг Claude (Anthropic)-ийн тусламжтай бэлтгэсэн. БД1, 2-ийн тайлан, Manual-ын LaTeX засварлахад Claude ашигласан.
