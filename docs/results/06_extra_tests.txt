@@ -1,0 +1,22 @@
+=== X1: Алхам 2-ын run.csv-г бие даасан шалгагчаар шалгах ===
+PASS: events=64, arrivals=15, helped=15, turned_away=0, max_queue=3, ta_sleeps=2
+
+=== X2: Хэт ачаалал (2 сандал, 20 оюутан, удаан TA) ===
+PASS: events=96, arrivals=40, helped=6, turned_away=34, max_queue=2, ta_sleeps=2
+
+=== X3: Ижил seed-ээр 2 удаа ажиллуулах (давтагдах чанар) ===
+PASS: events=60, arrivals=15, helped=13, turned_away=2, max_queue=3, ta_sleeps=2
+PASS: events=60, arrivals=15, helped=13, turned_away=2, max_queue=3, ta_sleeps=2
+
+=== X4: --no-mutex горимыг 5 удаа ажиллуулах ===
+АНХААР: --no-mutex горим. waiting/queue хамгаалагдаагүй тул race condition гарна.
+  (нийт 43 зөрчил)
+АНХААР: --no-mutex горим. waiting/queue хамгаалагдаагүй тул race condition гарна.
+  (нийт 53 зөрчил)
+АНХААР: --no-mutex горим. waiting/queue хамгаалагдаагүй тул race condition гарна.
+  (нийт 78 зөрчил)
+АНХААР: --no-mutex горим. waiting/queue хамгаалагдаагүй тул race condition гарна.
+  (нийт 29 зөрчил)
+АНХААР: --no-mutex горим. waiting/queue хамгаалагдаагүй тул race condition гарна.
+WATCHDOG: --no-mutex горимд race-ээс болж гацсан (log хэвээр үлдсэн).
+  (нийт 259 зөрчил)
