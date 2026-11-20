@@ -111,7 +111,7 @@ tests/      run_tests.sh, check_log.c, test_ui_model.js, test_cases.md,
             sweep.sh, fixtures/ (5 буруу log)
 examples/   бодит log-ууд (race_demo.csv орно)
 docs/       V-1-10_Poster.pdf, V-1-10_Final_Report.pdf, V-1-10_Manual.pdf, Manual.md,
-            images/ (UI-ийн зураг), results_bd2/ (туршилтын гаралт), 10_BD1_Report.pdf (БД1)
+            images/ (UI-ийн зураг), results/ (БД1 туршилтын гаралт), results_bd2/ (БД2 туршилтын гаралт)
 .github/    workflows/ci.yml
 ```
 
